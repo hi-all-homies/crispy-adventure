@@ -1,0 +1,53 @@
+query AnimeList($page: PositiveInt, $limit: PositiveInt, $order: OrderEnum, $kind: AnimeKindString, $status: AnimeStatusString, $season: SeasonString, $score: Int, $duration: DurationString, $rating: RatingString, $origin: OriginString, $genre: String, $studio: String, $franchise: String, $censored: Boolean, $mylist: MylistString, $ids: String, $excludeIds: String, $search: String) {
+    animes(page: $page, limit: $limit, order: $order, kind: $kind, status: $status, season: $season, score: $score, duration: $duration, rating: $rating, origin: $origin, genre: $genre, studio: $studio, franchise: $franchise, censored: $censored, mylist: $mylist, ids: $ids, excludeIds: $excludeIds, search: $search) {
+        airedOn {
+            day
+            month
+            year
+        }
+        characterRoles {
+            character {
+                id
+                description
+                name
+                russian
+                poster {
+                    mainAltUrl
+                    mainUrl
+                }
+            }
+            id
+            rolesEn
+        }
+        description
+        duration
+        english
+        russian
+        episodes
+        id
+        kind
+        poster {
+            mainAltUrl
+            mainUrl
+        }
+        rating
+        score
+        season
+        status
+        genres {
+            id
+            name
+            russian
+        }
+        releasedOn {
+            day
+            month
+            year
+        }
+        studios {
+            id
+            imageUrl
+            name
+        }
+    }
+}
