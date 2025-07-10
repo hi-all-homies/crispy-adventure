@@ -15,8 +15,8 @@ import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
 @Composable
 fun AnimeListScreen(
     animeList: List<AnimeListQuery.Anime>,
-    onAnimeClick: (AnimeListQuery.Anime) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onAnimeClick: (AnimeListQuery.Anime) -> Unit
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),

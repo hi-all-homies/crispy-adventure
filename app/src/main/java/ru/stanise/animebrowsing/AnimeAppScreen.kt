@@ -1,6 +1,5 @@
 package ru.stanise.animebrowsing
 
-import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -17,11 +16,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ru.stanise.animebrowsing.ui.AnimeDetailScreen
 import ru.stanise.animebrowsing.ui.AnimeListScreen
+import ru.stanise.animebrowsing.ui.AnimeTopBar
 import ru.stanise.animebrowsing.ui.ErrorScreen
 import ru.stanise.animebrowsing.ui.LoadingScreen
 import ru.stanise.animebrowsing.ui.NotFoundScreen
 import ru.stanise.animebrowsing.ui.model.AnimeModel
-import ru.stanise.animebrowsing.ui.model.AnimeUiState
 import ru.stanise.animebrowsing.ui.nav.AppScreen
 
 
@@ -30,31 +29,37 @@ fun AnimeAppScreen() {
     val navController = rememberNavController()
 
     val animeModel: AnimeModel = viewModel(factory = AnimeModel.Factory)
-    val animeUiState by animeModel.ui.collectAsState()
+    val screenState by animeModel.screenState.collectAsState()
+    val animeState by animeModel.animeState.collectAsState()
 
-    var lastScreen by rememberSaveable { mutableStateOf<String?>(null) }
+    var lastScreen by rememberSaveable { mutableStateOf<AppScreen?>(null) }
 
-    LaunchedEffect(animeUiState) {
-        val targetScreen = when (animeUiState) {
-            is AnimeUiState.Success -> AppScreen.AnimeList.name
-            is AnimeUiState.NotFound -> AppScreen.NotFound.name
-            else -> AppScreen.Error.name
-        }
-
-        if (animeUiState !is AnimeUiState.Loading && targetScreen != lastScreen) {
-            lastScreen = targetScreen
-            Log.d("ANIME", "running navigate(${targetScreen})")
-            navController.navigate(targetScreen) {
+    LaunchedEffect(screenState) {
+        if (screenState != lastScreen && screenState != AppScreen.Loading) {
+            lastScreen = screenState
+            navController.navigate(screenState.name) {
                 launchSingleTop = true
             }
         }
     }
 
+    LaunchedEffect(navController) {
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            AppScreen.entries.find { it.name == destination.route }?.let {
+                animeModel.setScreenState(it)
+            }
+        }
+    }
+
     Scaffold(
-        topBar = {},
+        topBar = {
+            AnimeTopBar(screenState, screenState != AppScreen.AnimeList) {
+                navController.popBackStack()
+            }
+        },
         bottomBar = {}
     ) { innerPadding ->
-        if (animeUiState is AnimeUiState.Loading) {
+        if (screenState == AppScreen.Loading) {
             LoadingScreen(modifier = Modifier.padding(innerPadding))
         } else {
             NavHost(
@@ -63,19 +68,14 @@ fun AnimeAppScreen() {
                 modifier = Modifier.padding(innerPadding)
             ) {
                 composable(AppScreen.AnimeList.name) {
-                    (animeUiState as? AnimeUiState.Success)?.let {
-                        AnimeListScreen(it.data, {anime ->
-                            animeModel.changeAnimeDetail(anime)
-                            navController.navigate(AppScreen.AnimeDetail.name){
-                                launchSingleTop = true
-                            }
-                        })
+                    AnimeListScreen(animeState.animeList){
+                        animeModel.selectAnime(it)
                     }
                 }
 
                 composable(AppScreen.AnimeDetail.name) {
-                    (animeUiState as? AnimeUiState.Success)?.let {
-                        AnimeDetailScreen(it.first)
+                    animeState.selectedAnime?.let { anime ->
+                        AnimeDetailScreen(anime)
                     }
                 }
 
