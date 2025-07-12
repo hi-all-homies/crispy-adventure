@@ -1,8 +1,9 @@
 package ru.stanise.animebrowsing.ui
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AdsClick
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -11,7 +12,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import ru.stanise.animebrowsing.ui.nav.AppScreen
 import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
 
@@ -19,7 +22,6 @@ import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
 @Composable
 fun AnimeTopBar(
     currentScreen: AppScreen,
-    canNavigateBack: Boolean,
     onBackClick: () -> Unit,
     onSearch: () -> Unit
 ) {
@@ -37,11 +39,12 @@ fun AnimeTopBar(
             )
         },
         navigationIcon = {
-            if (canNavigateBack) {
+            if (currentScreen != AppScreen.AnimeList && currentScreen != AppScreen.Loading) {
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
+                        contentDescription = "Back",
+                        modifier = Modifier.size(40.dp)
                     )
                 }
             }
@@ -49,8 +52,9 @@ fun AnimeTopBar(
         actions = {
             IconButton(onClick = onSearch) {
                 Icon(
-                    imageVector = Icons.Default.AdsClick,
-                    contentDescription = "search buton"
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "search buton",
+                    modifier = Modifier.size(40.dp)
                 )
             }
         },
@@ -68,6 +72,6 @@ fun AnimeTopBar(
 @Composable
 fun AppBarPreview(){
     AnimeBrowsingTheme {
-        AnimeTopBar(AppScreen.NotFound, true, {}) { }
+        AnimeTopBar(AppScreen.NotFound,{}) { }
     }
 }

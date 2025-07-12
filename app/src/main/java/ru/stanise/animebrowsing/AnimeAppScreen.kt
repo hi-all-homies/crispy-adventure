@@ -23,6 +23,7 @@ import ru.stanise.animebrowsing.ui.LoadingScreen
 import ru.stanise.animebrowsing.ui.NotFoundScreen
 import ru.stanise.animebrowsing.ui.model.AnimeModel
 import ru.stanise.animebrowsing.ui.model.SearchModel
+import ru.stanise.animebrowsing.ui.model.SearchUiState
 import ru.stanise.animebrowsing.ui.model.availableGenres
 import ru.stanise.animebrowsing.ui.nav.AppScreen
 
@@ -33,7 +34,7 @@ fun AnimeAppScreen() {
 
     val animeModel: AnimeModel = viewModel(factory = AnimeModel.Factory)
     val screenState by animeModel.screenState.collectAsState()
-    val animeState by animeModel.animeState.collectAsState()
+    val selectedAnime = animeModel.selectedAnime
 
     val searchModel: SearchModel = viewModel()
     val searchState by searchModel.filters.collectAsState()
@@ -63,9 +64,15 @@ fun AnimeAppScreen() {
         topBar = {
             AnimeTopBar(
                 currentScreen = screenState,
-                canNavigateBack = screenState != AppScreen.AnimeList,
-                onBackClick = { navController.popBackStack() },
-                onSearch = { visibleBottomSearch = true }
+                onBackClick = {
+                    if (screenState == AppScreen.NotFound)
+                        animeModel.getAnimeList(searchModel.resetFilters())
+                    else
+                        navController.popBackStack()
+                },
+                onSearch = {
+                    visibleBottomSearch = !visibleBottomSearch
+                }
             )
         }
     ) { innerPadding ->
@@ -78,19 +85,19 @@ fun AnimeAppScreen() {
                 modifier = Modifier.padding(innerPadding)
             ) {
                 composable(AppScreen.AnimeList.name) {
-                    AnimeListScreen(animeState.animeList){
+                    AnimeListScreen(animeModel, searchState){
                         animeModel.selectAnime(it)
                     }
                 }
 
                 composable(AppScreen.AnimeDetail.name) {
-                    animeState.selectedAnime?.let { anime ->
+                    selectedAnime?.let { anime ->
                         AnimeDetailScreen(anime)
                     }
                 }
 
                 composable(AppScreen.NotFound.name) {
-                    NotFoundScreen()
+                    NotFoundScreen { visibleBottomSearch = !visibleBottomSearch }
                 }
 
                 composable(AppScreen.Error.name) {
@@ -112,7 +119,7 @@ fun AnimeAppScreen() {
                 selectedGenres = searchState.selectedGenres,
                 onGenreToggle = searchModel::toggleGenre,
                 onApply = {
-                    animeModel.getAnimeList(searchModel.applyFilters())
+                    animeModel.getAnimeList(searchState)
                     visibleBottomSearch = false
                 },
                 onReset = searchModel::resetFilters

@@ -1,5 +1,9 @@
 package ru.stanise.animebrowsing.ui.model
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -8,7 +12,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.stanise.animebrowsing.config.AnimeApplication
 import ru.stanise.animebrowsing.repository.AnimeRepo
@@ -20,9 +23,20 @@ class AnimeModel(private val animeRepo: AnimeRepo) : ViewModel() {
     private val _screenState = MutableStateFlow(AppScreen.Loading)
     val screenState = _screenState.asStateFlow()
 
-    private val _animeState = MutableStateFlow(AnimeUiState(emptyList(), null))
-    val animeState = _animeState.asStateFlow()
+    var animeList = mutableStateListOf<AnimeListQuery.Anime>()
+        private set
 
+    var selectedAnime by mutableStateOf<AnimeListQuery.Anime?>(null)
+        private set
+
+    private var currentPage = 1
+    private val limit = 25
+
+    var isFetchingMore by mutableStateOf(false)
+        private set
+
+    var hasMorePages by mutableStateOf(true)
+        private set
 
     init {
         getAnimeList(SearchUiState())
@@ -35,17 +49,37 @@ class AnimeModel(private val animeRepo: AnimeRepo) : ViewModel() {
 
 
     fun getAnimeList(searchUiState: SearchUiState) {
+        currentPage = 1
+        hasMorePages = true
+        animeList.clear()
+
         handleRequest(
             { animeRepo.getAnimeList(searchUiState) },
             {
-                _animeState.value = AnimeUiState(it, it.first())
+                animeList.addAll(it)
+                selectedAnime = it.first()
                 _screenState.value = AppScreen.AnimeList
             }
         )
     }
 
+
+    fun getNextPage(searchUiState: SearchUiState){
+        if (isFetchingMore || !hasMorePages) return
+
+        handleRequest(
+            {
+                animeRepo.getAnimeList(searchUiState.copy(page = currentPage))
+            },
+            { animeList.addAll(it) },
+            { hasMorePages = false },
+            { hasMorePages = false }
+        )
+    }
+
+
     fun selectAnime(anime: AnimeListQuery.Anime){
-        _animeState.update { it.copy(selectedAnime = anime) }
+        selectedAnime = anime
         _screenState.value = AppScreen.AnimeDetail
     }
 
@@ -56,18 +90,31 @@ class AnimeModel(private val animeRepo: AnimeRepo) : ViewModel() {
         onEmpty: () -> Unit = { _screenState.value = AppScreen.NotFound },
         onError: () -> Unit = { _screenState.value = AppScreen.Error }
     ){
+        isFetchingMore = true
         viewModelScope.launch {
-            _screenState.value = AppScreen.Loading
+            if (currentPage == 1){
+                _screenState.value = AppScreen.Loading
+            }
             try {
                 val result = requestBlock()
 
-                if (result.isEmpty())
+                if (result.size < limit) {
+                    hasMorePages = false
+                }
+
+                if (result.isEmpty()) {
                     onEmpty()
-                else
+                }
+                else {
                     onSuccess(result)
+                    currentPage++
+                }
             }
             catch (_: Throwable){
                 onError()
+            }
+            finally {
+                isFetchingMore  = false
             }
         }
     }

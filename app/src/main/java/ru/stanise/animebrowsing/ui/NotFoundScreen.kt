@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,7 +24,8 @@ import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
 @Composable
 fun NotFoundScreen(
     modifier: Modifier = Modifier,
-    message: String = "No results found"
+    message: String = "No results found",
+    onRetry: () -> Unit
 ) {
     Box(
         modifier = modifier
@@ -45,6 +47,10 @@ fun NotFoundScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(onRetry) {
+                Text(text = "retry", style = MaterialTheme.typography.titleMedium)
+            }
         }
     }
 }
@@ -53,6 +59,6 @@ fun NotFoundScreen(
 @Composable
 fun NotFoundPreview(){
     AnimeBrowsingTheme{
-        NotFoundScreen()
+        NotFoundScreen(onRetry = {})
     }
 }

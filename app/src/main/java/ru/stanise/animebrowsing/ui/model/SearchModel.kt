@@ -35,11 +35,8 @@ class SearchModel : ViewModel() {
         }
     }
 
-    fun resetFilters() {
+    fun resetFilters(): SearchUiState {
         _filters.value = SearchUiState(selectedStatus = null)
-    }
-
-    fun applyFilters(): SearchUiState {
         return _filters.value
     }
 }
