@@ -2,6 +2,7 @@ package ru.stanise.animebrowsing.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AdsClick
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -19,7 +20,8 @@ import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
 fun AnimeTopBar(
     currentScreen: AppScreen,
     canNavigateBack: Boolean,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onSearch: () -> Unit
 ) {
     TopAppBar(
         title = {
@@ -44,10 +46,19 @@ fun AnimeTopBar(
                 }
             }
         },
+        actions = {
+            IconButton(onClick = onSearch) {
+                Icon(
+                    imageVector = Icons.Default.AdsClick,
+                    contentDescription = "search buton"
+                )
+            }
+        },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary,
             titleContentColor = MaterialTheme.colorScheme.onPrimary,
-            navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+            navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+            actionIconContentColor = MaterialTheme.colorScheme.onPrimary
         )
     )
 }
@@ -57,6 +68,6 @@ fun AnimeTopBar(
 @Composable
 fun AppBarPreview(){
     AnimeBrowsingTheme {
-        AnimeTopBar(AppScreen.NotFound, true) { }
+        AnimeTopBar(AppScreen.NotFound, true, {}) { }
     }
 }

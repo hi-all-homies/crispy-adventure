@@ -25,7 +25,7 @@ class AnimeModel(private val animeRepo: AnimeRepo) : ViewModel() {
 
 
     init {
-        getAnimeList(1, 5)
+        getAnimeList(SearchUiState())
     }
 
 
@@ -34,9 +34,9 @@ class AnimeModel(private val animeRepo: AnimeRepo) : ViewModel() {
     }
 
 
-    fun getAnimeList(page: Int, limit: Int) {
+    fun getAnimeList(searchUiState: SearchUiState) {
         handleRequest(
-            { animeRepo.getAnimeList(page, limit) },
+            { animeRepo.getAnimeList(searchUiState) },
             {
                 _animeState.value = AnimeUiState(it, it.first())
                 _screenState.value = AppScreen.AnimeList
