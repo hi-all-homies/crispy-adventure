@@ -1,18 +1,31 @@
 package ru.stanise.animebrowsing.ui
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ru.stanise.animebrowsing.ui.nav.AppScreen
@@ -23,19 +36,32 @@ import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
 fun AnimeTopBar(
     currentScreen: AppScreen,
     onBackClick: () -> Unit,
-    onSearch: () -> Unit
+    toggleFilters: () -> Unit,
+    onSearch: (String) -> Unit
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    var query by rememberSaveable { mutableStateOf("") }
+
     TopAppBar(
         title = {
-            Text(
-                text = when (currentScreen) {
-                    AppScreen.AnimeList -> "Anime List"
-                    AppScreen.AnimeDetail -> "Anime Details"
-                    AppScreen.NotFound -> "Not Found"
-                    AppScreen.Error -> "Error"
-                    AppScreen.Loading -> "Loading"
-                },
-                style = MaterialTheme.typography.titleLarge
+            TextField(
+                value = query,
+                onValueChange = { query = it },
+                label = { Text("Search by title") },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Done,
+                    showKeyboardOnFocus = true
+                ),
+                keyboardActions = KeyboardActions(onDone = {
+                    keyboardController?.hide()
+                    focusManager.clearFocus(force = true)
+                    onSearch(query)
+                    query = ""
+                }),
+                shape = MaterialTheme.shapes.medium
             )
         },
         navigationIcon = {
@@ -44,17 +70,17 @@ fun AnimeTopBar(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }
         },
         actions = {
-            IconButton(onClick = onSearch) {
+            IconButton(onClick = toggleFilters) {
                 Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "search buton",
-                    modifier = Modifier.size(40.dp)
+                    imageVector = Icons.Default.FilterList,
+                    contentDescription = "filters button",
+                    modifier = Modifier.size(28.dp)
                 )
             }
         },
@@ -65,6 +91,10 @@ fun AnimeTopBar(
             actionIconContentColor = MaterialTheme.colorScheme.onPrimary
         )
     )
+
+    BackHandler {
+        focusManager.clearFocus(force = true)
+    }
 }
 
 
@@ -72,6 +102,6 @@ fun AnimeTopBar(
 @Composable
 fun AppBarPreview(){
     AnimeBrowsingTheme {
-        AnimeTopBar(AppScreen.NotFound,{}) { }
+        AnimeTopBar(AppScreen.NotFound, {}, {}, {})
     }
 }

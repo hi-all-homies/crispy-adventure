@@ -54,7 +54,6 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
 
-    implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.androidx.material.icons.extended)
 
     implementation(libs.androidx.core.ktx)

@@ -27,13 +27,16 @@ class GraphqlAnimeService(private val apolloClient: ApolloClient) : AnimeService
             acc.plus(",").plus(string)
         }
 
+        val kind = searchQuery.selectedKind.singleOrNull()
+        val status = searchQuery.selectedStatus.singleOrNull()
+
         val query = apolloClient.query(AnimeListQuery(
             page = Optional.present(searchQuery.page),
             limit = Optional.present(25),
             censored = Optional.present(false),
             search = Optional.presentIfNotNull(search),
-            kind = Optional.presentIfNotNull(searchQuery.selectedKind?.rawValue),
-            status = Optional.presentIfNotNull(searchQuery.selectedStatus?.rawValue),
+            kind = Optional.presentIfNotNull(kind),
+            status = Optional.presentIfNotNull(status),
             score = Optional.presentIfNotNull(score),
             genre = Optional.presentIfNotNull(genreString))
         )

@@ -10,20 +10,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ru.stanise.animebrowsing.ui.AnimeDetailScreen
 import ru.stanise.animebrowsing.ui.AnimeListScreen
-import ru.stanise.animebrowsing.ui.AnimeSearchBottomSheet
 import ru.stanise.animebrowsing.ui.AnimeTopBar
 import ru.stanise.animebrowsing.ui.ErrorScreen
+import ru.stanise.animebrowsing.ui.FilterDialog
 import ru.stanise.animebrowsing.ui.LoadingScreen
 import ru.stanise.animebrowsing.ui.NotFoundScreen
 import ru.stanise.animebrowsing.ui.model.AnimeModel
 import ru.stanise.animebrowsing.ui.model.SearchModel
-import ru.stanise.animebrowsing.ui.model.SearchUiState
 import ru.stanise.animebrowsing.ui.model.availableGenres
 import ru.stanise.animebrowsing.ui.nav.AppScreen
 
@@ -41,11 +41,14 @@ fun AnimeAppScreen() {
 
     var lastScreen by rememberSaveable { mutableStateOf<AppScreen?>(null) }
 
-    var visibleBottomSearch by rememberSaveable { mutableStateOf(false) }
+    var visibleDialog by rememberSaveable { mutableStateOf(false) }
+
+    val focusManager = LocalFocusManager.current
 
     LaunchedEffect(screenState) {
         if (screenState != lastScreen && screenState != AppScreen.Loading) {
             lastScreen = screenState
+            focusManager.clearFocus(force = true)
             navController.navigate(screenState.name) {
                 launchSingleTop = true
             }
@@ -70,9 +73,8 @@ fun AnimeAppScreen() {
                     else
                         navController.popBackStack()
                 },
-                onSearch = {
-                    visibleBottomSearch = !visibleBottomSearch
-                }
+                toggleFilters = { visibleDialog = !visibleDialog },
+                onSearch = { animeModel.getAnimeList(searchModel.searchByQuery(it)) }
             )
         }
     ) { innerPadding ->
@@ -97,33 +99,23 @@ fun AnimeAppScreen() {
                 }
 
                 composable(AppScreen.NotFound.name) {
-                    NotFoundScreen { visibleBottomSearch = !visibleBottomSearch }
+                    NotFoundScreen { visibleDialog = !visibleDialog }
                 }
 
                 composable(AppScreen.Error.name) {
                     ErrorScreen({})
                 }
             }
-            AnimeSearchBottomSheet(
-                visible = visibleBottomSearch,
-                onDismiss = { visibleBottomSearch = !visibleBottomSearch },
-                searchText = searchState.query,
-                onSearchTextChange = searchModel::updateQuery,
-                selectedKind = searchState.selectedKind,
-                onKindSelected = searchModel::updateKind,
-                selectedStatus = searchState.selectedStatus,
-                onStatusSelected = searchModel::updateStatus,
-                score = searchState.minScore,
-                onScoreChange = searchModel::updateScore,
-                genres = availableGenres,
-                selectedGenres = searchState.selectedGenres,
-                onGenreToggle = searchModel::toggleGenre,
-                onApply = {
-                    animeModel.getAnimeList(searchState)
-                    visibleBottomSearch = false
-                },
-                onReset = searchModel::resetFilters
-            )
+            if (visibleDialog){
+                FilterDialog(
+                    onDismiss = { visibleDialog = !visibleDialog },
+                    genres = availableGenres,
+                    onApply = {
+                        animeModel.getAnimeList(searchModel.searchByFilters(it))
+                        visibleDialog = false
+                    }
+                )
+            }
         }
     }
 }
