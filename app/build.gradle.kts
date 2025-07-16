@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.apollo)
+    kotlin("plugin.serialization") version "2.2.0"
 }
 
 android {
@@ -46,7 +46,9 @@ android {
 }
 
 dependencies {
-    implementation(libs.apollo.runtime)
+    implementation(libs.retrofit)
+    implementation(libs.converter.kotlinx.serialization)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
@@ -71,23 +73,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-}
-
-apollo {
-    service("service") {
-        packageName.set("ru.stanise.animebrowsing")
-        introspection {
-            endpointUrl.set("https://shikimori.one/api/graphql")
-            schemaFile.set {file("src/main/graphql/schema.graphqls")}
-        }
-
-        mapScalar("PositiveInt", "kotlin.Int", "ru.stanise.animebrowsing.adapters.PositiveIntAdapter")
-        mapScalar("AnimeKindString", "kotlin.String")
-        mapScalar("RatingString", "kotlin.String")
-        mapScalar("AnimeStatusString", "kotlin.String")
-        mapScalar("OriginString", "kotlin.String")
-        mapScalar("SeasonString", "kotlin.String")
-        mapScalar("DurationString", "kotlin.String")
-        mapScalar("MylistString", "kotlin.String")
-    }
 }

@@ -6,4 +6,5 @@ enum class AppScreen {
     Loading,
     NotFound,
     Error,
+    Launcher
 }

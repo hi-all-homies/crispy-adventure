@@ -1,5 +1,6 @@
 package ru.stanise.animebrowsing.ui.model
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -10,27 +11,23 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.stanise.animebrowsing.config.AnimeApplication
+import ru.stanise.animebrowsing.config.Config
+import ru.stanise.animebrowsing.dto.Anime
 import ru.stanise.animebrowsing.repository.AnimeRepo
-import ru.stanise.animebrowsing.AnimeListQuery
 import ru.stanise.animebrowsing.ui.nav.AppScreen
+import ru.stanise.animebrowsing.ui.nav.Navigator
 
-class AnimeModel(private val animeRepo: AnimeRepo) : ViewModel() {
+class AnimeModel(private val animeRepo: AnimeRepo, private val nav: Navigator) : ViewModel() {
 
-    private val _screenState = MutableStateFlow(AppScreen.Loading)
-    val screenState = _screenState.asStateFlow()
-
-    var animeList = mutableStateListOf<AnimeListQuery.Anime>()
+    var animeList = mutableStateListOf<Anime>()
         private set
 
-    var selectedAnime by mutableStateOf<AnimeListQuery.Anime?>(null)
+    var selectedAnime by mutableStateOf<Anime?>(null)
         private set
 
     private var currentPage = 1
-    private val limit = 25
 
     var isFetchingMore by mutableStateOf(false)
         private set
@@ -38,14 +35,6 @@ class AnimeModel(private val animeRepo: AnimeRepo) : ViewModel() {
     var hasMorePages by mutableStateOf(true)
         private set
 
-    init {
-        getAnimeList(SearchUiState())
-    }
-
-
-    fun setScreenState(screen: AppScreen) {
-        _screenState.value = screen
-    }
 
 
     fun getAnimeList(searchUiState: SearchUiState) {
@@ -58,7 +47,6 @@ class AnimeModel(private val animeRepo: AnimeRepo) : ViewModel() {
             {
                 animeList.addAll(it)
                 selectedAnime = it.first()
-                _screenState.value = AppScreen.AnimeList
             }
         )
     }
@@ -77,28 +65,35 @@ class AnimeModel(private val animeRepo: AnimeRepo) : ViewModel() {
         )
     }
 
-
-    fun selectAnime(anime: AnimeListQuery.Anime){
-        selectedAnime = anime
-        _screenState.value = AppScreen.AnimeDetail
+    fun goBack() {
+        viewModelScope.launch {
+            nav.back()
+        }
     }
 
 
+    fun selectAnime(anime: Anime){
+        viewModelScope.launch {
+            selectedAnime = anime
+            nav.navigateTo(AppScreen.AnimeDetail)
+        }
+    }
+
     private fun handleRequest(
-        requestBlock: suspend () -> List<AnimeListQuery.Anime>,
-        onSuccess: (List<AnimeListQuery.Anime>) -> Unit,
-        onEmpty: () -> Unit = { _screenState.value = AppScreen.NotFound },
-        onError: () -> Unit = { _screenState.value = AppScreen.Error }
+        requestBlock: suspend () -> List<Anime>,
+        onSuccess: suspend (List<Anime>) -> Unit,
+        onEmpty: suspend () -> Unit = { nav.navigateTo(AppScreen.NotFound) },
+        onError: suspend () -> Unit = { nav.navigateTo(AppScreen.Error) }
     ){
         isFetchingMore = true
         viewModelScope.launch {
             if (currentPage == 1){
-                _screenState.value = AppScreen.Loading
+                nav.navigateTo(AppScreen.Loading)
             }
             try {
                 val result = requestBlock()
 
-                if (result.size < limit) {
+                if (result.size < Config.LIMIT) {
                     hasMorePages = false
                 }
 
@@ -108,9 +103,11 @@ class AnimeModel(private val animeRepo: AnimeRepo) : ViewModel() {
                 else {
                     onSuccess(result)
                     currentPage++
+                    nav.navigateTo(AppScreen.AnimeList)
                 }
             }
-            catch (_: Throwable){
+            catch (e: Throwable){
+                Log.d("ANIME_MODEL_HANDLE_REQUEST", "error message: ${e.message}")
                 onError()
             }
             finally {
@@ -125,7 +122,8 @@ class AnimeModel(private val animeRepo: AnimeRepo) : ViewModel() {
             initializer {
                 val application = (this[APPLICATION_KEY] as AnimeApplication)
                 val animeRepo = application.container.animeRepo
-                AnimeModel(animeRepo)
+                val nav = application.container.navigator
+                AnimeModel(animeRepo, nav)
             }
         }
     }

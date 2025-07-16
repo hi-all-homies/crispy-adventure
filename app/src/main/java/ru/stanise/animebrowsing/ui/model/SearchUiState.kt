@@ -1,12 +1,12 @@
 package ru.stanise.animebrowsing.ui.model
 
 import androidx.compose.runtime.saveable.Saver
-import ru.stanise.animebrowsing.type.AnimeStatusEnum
+import ru.stanise.animebrowsing.dto.Status
 
 data class SearchUiState(
     val query: String = "",
     val selectedKind: Set<String> = emptySet(),
-    val selectedStatus: Set<String> = setOf(AnimeStatusEnum.ongoing.rawValue),
+    val selectedStatus: Set<String> = setOf(Status.AIRING.rawValue),
     val minScore: Float = 0f,
     val selectedGenres: Set<String> = emptySet(),
     val page: Int = 1
