@@ -54,3 +54,8 @@ fun List<Title>.getJapaneseTitleOrFallback(): String {
         ?: firstOrNull { it.type.equals("Default", ignoreCase = true) }?.title
         ?: ""
 }
+
+fun Anime.getSeasonYear(): String {
+    return listOfNotNull(season?.rawValue, year?.toString())
+        .joinToString(" ")
+}

@@ -1,43 +1,41 @@
 package ru.stanise.animebrowsing.ui
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.AssistChip
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import ru.stanise.animebrowsing.dto.Anime
-import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
-import ru.stanise.animebrowsing.R
 import ru.stanise.animebrowsing.dto.AnimeType
 import ru.stanise.animebrowsing.dto.Genre
 import ru.stanise.animebrowsing.dto.Image
@@ -45,10 +43,13 @@ import ru.stanise.animebrowsing.dto.Images
 import ru.stanise.animebrowsing.dto.Season
 import ru.stanise.animebrowsing.dto.Status
 import ru.stanise.animebrowsing.dto.Title
+import ru.stanise.animebrowsing.dto.getEnglishTitleOrFallback
+import ru.stanise.animebrowsing.dto.getJapaneseTitleOrFallback
+import ru.stanise.animebrowsing.dto.getSeasonYear
+import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
 
 @Composable
 fun AnimeDetailScreen(anime: Anime, modifier: Modifier = Modifier) {
-    var synopsisExpanded by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = modifier
@@ -58,150 +59,153 @@ fun AnimeDetailScreen(anime: Anime, modifier: Modifier = Modifier) {
         item {
             AnimePoster(
                 anime.images.jpg.imageUrl,
-                modifier = Modifier
+                modifier = modifier
                     .aspectRatio(2f / 3f)
                     .clip(MaterialTheme.shapes.medium)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
             )
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Titles
+        item {
+            Spacer(modifier = modifier.height(16.dp))
             Text(
-                text = "title",
+                text = anime.titles.getEnglishTitleOrFallback(),
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
 
-            if (anime.titles.any { it.type == "Japanese" }) {
+            anime.titles.getJapaneseTitleOrFallback().let {
+                if (it.isNotBlank()){
+                    Spacer(modifier = modifier.height(8.dp))
+
+                    Text(
+                        text = anime.titles.getJapaneseTitleOrFallback(),
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+            Spacer(modifier = modifier.height(8.dp))
+
+            anime.type?.let {
                 Text(
-                    text = "japanisse",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = it.rawValue,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+            Spacer(modifier = modifier.height(8.dp))
+
+            anime.let {
+                val label = it.getSeasonYear()
+                if (label.isNotBlank()) {
+                    LabeledIconRow(label, Icons.Default.DateRange, MaterialTheme.typography.bodyLarge)
+                }
+            }
+
+            Spacer(modifier = modifier.height(8.dp))
+
+            anime.score?.let {
+                LabeledIconRow(it.toString(), Icons.Default.Star, MaterialTheme.typography.bodyLarge)
+            }
+
+            Spacer(modifier = modifier.height(8.dp))
+
+            anime.episodes?.let {
+                Text(
+                    text = "Episodes: $it",
+                    style = MaterialTheme.typography.bodyLarge,
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = modifier.height(8.dp))
 
-            // Genres
-            if (anime.genres.isNotEmpty()) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    anime.genres.forEach { genre ->
-                        AssistChip(
-                            onClick = {},
-                            label = { Text(genre.name) }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
+            anime.duration?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
             }
 
-            // Info Row
-            InfoRow(anime)
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Expandable synopsis
-            anime.synopsis?.let { synopsis ->
-                Column {
-                    Text(
-                        text = synopsis,
-                        maxLines = if (synopsisExpanded) Int.MAX_VALUE else 4,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    TextButton(
-                        onClick = { synopsisExpanded = !synopsisExpanded }
-                    ) {
-                        Text(if (synopsisExpanded) "Show less" else "Read more")
-                    }
-                }
-            }
+            Spacer(modifier = modifier.height(8.dp))
+            GenresRow(anime)
+            Spacer(modifier = modifier.height(8.dp))
         }
-//        if (anime.characterRoles?.isNotEmpty() == true) {
-//            item {
-//                Spacer(modifier = Modifier.height(16.dp))
-//                CharacterList(anime.characterRoles)
-//            }
-//        }
+
+        item {
+            anime.synopsis?.let { ExpandableText(it) }
+            Spacer(modifier = modifier.height(12.dp))
+            anime.background?.let { if (it.isNotBlank()) ExpandableText("Background: \n$it") }
+        }
+
+        item {
+            Spacer(modifier = modifier.height(12.dp))
+            CharacterList(anime.id)
+        }
     }
 }
 
 
 @Composable
-private fun InfoRow(anime: Anime) {
-    val infoItems = listOfNotNull(
-        anime.season?.rawValue?.replaceFirstChar { it.uppercaseChar() },
-        anime.year?.let { "Year: $it" },
-        anime.type?.rawValue,
-        anime.episodes?.takeIf { it > 0 }?.let { "$it eps" },
-        anime.score?.let { "Score: $it" },
-    )
+fun ExpandableText(
+    text: String,
+    collapsedMaxLines: Int = 2,
+    showToggleIcon: Boolean = true,
+    modifier: Modifier = Modifier,
+    textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
+    fadeColor: Color = MaterialTheme.colorScheme.background
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var isOverflowing by remember { mutableStateOf(false) }
 
-    if (infoItems.isNotEmpty()) {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            infoItems.forEach { label ->
-                AssistChip(
-                    onClick = {},
-                    label = { Text(label) }
+    Column(
+        modifier = modifier
+            .animateContentSize()
+    ) {
+        Box {
+            Text(
+                text = text,
+                maxLines = if (expanded) Int.MAX_VALUE else collapsedMaxLines,
+                style = textStyle,
+                overflow = TextOverflow.Ellipsis,
+                onTextLayout = { result ->
+                    isOverflowing = result.hasVisualOverflow && !expanded
+                },
+                modifier = modifier
+                    .fillMaxWidth()
+            )
+
+            if (!expanded && isOverflowing) {
+                Box(
+                    modifier = modifier
+                        .matchParentSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, fadeColor),
+                                startY = 0f,
+                                endY = 100f
+                            )
+                        )
+                )
+            }
+        }
+
+        if (showToggleIcon && isOverflowing) {
+            IconButton(
+                onClick = { expanded = !expanded },
+                modifier = modifier
+                    .align(Alignment.End)
+                    .padding(top = 4.dp)
+            ) {
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (expanded) "Show less" else "Show more"
                 )
             }
         }
     }
 }
 
-
-//@Composable
-//fun CharacterList(
-//    characterRoles: List<CharacterRole>,
-//    modifier: Modifier = Modifier
-//) {
-//    Column(modifier = modifier) {
-//        Text(
-//            text = "Characters",
-//            style = MaterialTheme.typography.titleMedium,
-//            fontWeight = FontWeight.SemiBold,
-//            modifier = Modifier.padding(bottom = 8.dp)
-//        )
-//
-//        LazyRow(
-//            horizontalArrangement = Arrangement.spacedBy(12.dp)
-//        ) {
-//            items(characterRoles) { role ->
-//                Column(
-//                    horizontalAlignment = Alignment.CenterHorizontally,
-//                    modifier = Modifier.width(100.dp)
-//                ) {
-//                    AsyncImage(
-//                        model = role.character.poster?.mainUrl,
-//                        contentDescription = role.character.name,
-//                        contentScale = ContentScale.Crop,
-//                        placeholder = painterResource(R.drawable.placeholder),
-//                        error = painterResource(R.drawable.error),
-//                        modifier = Modifier
-//                            .size(100.dp)
-//                            .clip(CircleShape)
-//                    )
-//                    Spacer(modifier = Modifier.height(4.dp))
-//                    Text(
-//                        text = role.character.name,
-//                        style = MaterialTheme.typography.bodySmall,
-//                        textAlign = TextAlign.Center,
-//                        maxLines = 2,
-//                        overflow = TextOverflow.Ellipsis
-//                    )
-//                }
-//            }
-//        }
-//    }
-//}
 
 
 @Preview(showBackground = true)
@@ -225,7 +229,7 @@ fun AnimeDetailPreview() {
         status = Status.COMPLETE,
         duration = "24 min per ep",
         score = 8.5,
-        synopsis = "This is a stub synopsis for the anime.",
+        synopsis = "This is a stub synopsis for the anime.This is a stub synopsis for the anime.This is a stub synopsis for the anime.This is a stub synopsis for the anime.This is a stub synopsis for the anime.This is a stub synopsis for the anime.This is a stub synopsis for the anime.This is a stub synopsis for the anime.This is a stub synopsis for the anime.",
         background = "Some background info.",
         season = Season.SPRING,
         year = 2022,

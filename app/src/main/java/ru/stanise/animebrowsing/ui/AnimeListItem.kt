@@ -9,15 +9,23 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,6 +38,7 @@ import ru.stanise.animebrowsing.dto.Season
 import ru.stanise.animebrowsing.dto.Status
 import ru.stanise.animebrowsing.dto.Title
 import ru.stanise.animebrowsing.dto.getEnglishTitleOrFallback
+import ru.stanise.animebrowsing.dto.getSeasonYear
 import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
 
 
@@ -70,36 +79,83 @@ fun AnimeListItem(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Text(
-                    text = "Episodes: ${anime.episodes}",
-                    style = MaterialTheme.typography.bodySmall
-                )
+                anime.let {
+                    val label = it.getSeasonYear()
+                    if (label.isNotBlank()) {
+                        LabeledIconRow(label, Icons.Default.DateRange, MaterialTheme.typography.bodyMedium)
+                    }
+                }
 
-                anime.score?.let {
+                anime.type?.let {
                     Text(
-                        text = "⭐ $it",
-                        style = MaterialTheme.typography.bodySmall,
+                        text = it.rawValue,
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 }
 
-                if (anime.genres.isNotEmpty()) {
-                    Row(
-                        modifier = Modifier
-                            .padding(top = 6.dp)
-                            .horizontalScroll(rememberScrollState())
-                    ) {
-                        anime.genres.forEach { genre ->
-                            AssistChip(
-                                onClick = {},
-                                label = { Text(genre.name) },
-                                modifier = Modifier
-                                    .padding(end = 6.dp)
-                            )
-                        }
-                    }
+                anime.score?.let {
+                    LabeledIconRow(it.toString(), Icons.Default.Star, MaterialTheme.typography.bodyMedium)
                 }
+
+                anime.episodes?.let {
+                    Text(
+                        text = "Episodes: $it",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+
+                anime.duration?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+                GenresRow(anime)
             }
+        }
+    }
+}
+
+@Composable
+fun LabeledIconRow(text: String, icon: ImageVector, textStyle: TextStyle){
+    Row(
+        modifier = Modifier.padding(top = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = text,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            style = textStyle,
+            text = text
+        )
+    }
+}
+
+
+@Composable
+fun GenresRow(anime: Anime, modifier: Modifier = Modifier){
+    val genreChipsScroll = rememberScrollState()
+    val genreList = anime.genres + anime.themes + anime.demographics
+
+    Row(
+        modifier = modifier
+            .padding(top = 4.dp)
+            .horizontalScroll(genreChipsScroll)
+    ) {
+        genreList.forEach { genre ->
+            AssistChip(
+                onClick = {},
+                label = { Text(genre.name) },
+                modifier = modifier.padding(end = 4.dp)
+            )
         }
     }
 }
@@ -120,7 +176,7 @@ fun PreviewAnimeListItem() {
             Title(type = "Default", title = "Stub Anime Title"),
             Title(type = "English", title = "Stub Anime Title EN")
         ),
-        type = AnimeType.TV,
+        type = AnimeType.MOVIE,
         episodes = 12,
         status = Status.COMPLETE,
         duration = "24 min per ep",
@@ -128,7 +184,7 @@ fun PreviewAnimeListItem() {
         synopsis = "This is a stub synopsis for the anime.",
         background = "Some background info.",
         season = Season.SPRING,
-        year = 2022,
+        year = 2025,
         genres = listOf(
             Genre(id = 1, name = "Action"),
             Genre(id = 2, name = "Adventure")

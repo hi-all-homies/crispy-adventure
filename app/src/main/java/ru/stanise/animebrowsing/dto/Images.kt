@@ -9,7 +9,7 @@ data class Image(
     val imageUrl: String?,
 
     @SerialName("large_image_url")
-    val largeImageUrl: String?
+    val largeImageUrl: String? = null
 )
 
 

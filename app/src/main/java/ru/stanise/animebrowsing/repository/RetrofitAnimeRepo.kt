@@ -36,6 +36,8 @@ class RetrofitAnimeRepo(val animeService: AnimeService) : AnimeRepo {
 
         put("page", page)
         put("limit", Config.LIMIT)
+        put("sort", "desc")
+        put("order_by", "start_date")
     }
 
 }
