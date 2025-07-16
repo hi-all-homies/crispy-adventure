@@ -21,13 +21,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ru.stanise.animebrowsing.AnimeListQuery
+import ru.stanise.animebrowsing.dto.Anime
+import ru.stanise.animebrowsing.dto.AnimeType
+import ru.stanise.animebrowsing.dto.Genre
+import ru.stanise.animebrowsing.dto.Image
+import ru.stanise.animebrowsing.dto.Images
+import ru.stanise.animebrowsing.dto.Season
+import ru.stanise.animebrowsing.dto.Status
+import ru.stanise.animebrowsing.dto.Title
+import ru.stanise.animebrowsing.dto.getEnglishTitleOrFallback
 import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
 
 
 @Composable
 fun AnimeListItem(
-    anime: AnimeListQuery.Anime,
+    anime: Anime,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -44,7 +52,7 @@ fun AnimeListItem(
                 .padding(12.dp)
         ) {
             AnimePoster(
-                anime.poster?.mainUrl ?: anime.poster?.mainAltUrl,
+                anime.images.jpg.imageUrl,
                 modifier = Modifier
                     .height(180.dp)
                     .aspectRatio(2f / 3f)
@@ -56,7 +64,7 @@ fun AnimeListItem(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = anime.russian ?: anime.english ?: "Untitled",
+                    text = anime.titles.getEnglishTitleOrFallback(),
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -75,7 +83,7 @@ fun AnimeListItem(
                     )
                 }
 
-                if (!anime.genres.isNullOrEmpty()) {
+                if (anime.genres.isNotEmpty()) {
                     Row(
                         modifier = Modifier
                             .padding(top = 6.dp)
@@ -84,7 +92,7 @@ fun AnimeListItem(
                         anime.genres.forEach { genre ->
                             AssistChip(
                                 onClick = {},
-                                label = { Text(genre.russian) },
+                                label = { Text(genre.name) },
                                 modifier = Modifier
                                     .padding(end = 6.dp)
                             )
@@ -99,7 +107,41 @@ fun AnimeListItem(
 @Preview
 @Composable
 fun PreviewAnimeListItem() {
+
+    val stubAnime = Anime(
+        id = 1,
+        images = Images( // You should create a stub for Images too
+            jpg = Image(
+                imageUrl = "https://example.com/image.jpg",
+                largeImageUrl = "https://example.com/image.jpg"
+            )
+        ),
+        titles = listOf(
+            Title(type = "Default", title = "Stub Anime Title"),
+            Title(type = "English", title = "Stub Anime Title EN")
+        ),
+        type = AnimeType.TV,
+        episodes = 12,
+        status = Status.COMPLETE,
+        duration = "24 min per ep",
+        score = 8.5,
+        synopsis = "This is a stub synopsis for the anime.",
+        background = "Some background info.",
+        season = Season.SPRING,
+        year = 2022,
+        genres = listOf(
+            Genre(id = 1, name = "Action"),
+            Genre(id = 2, name = "Adventure")
+        ),
+        themes = listOf(
+            Genre(id = 66, name = "Mahou Shoujo")
+        ),
+        demographics = listOf(
+            Genre(id = 42, name = "Seinen")
+        )
+    )
+
     AnimeBrowsingTheme {
-        AnimeListItem(anime = sampleAnime, {})
+        AnimeListItem(anime = stubAnime, {})
     }
 }

@@ -34,7 +34,7 @@ import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnimeTopBar(
-    currentScreen: AppScreen,
+    currentScreen: AppScreen?,
     onBackClick: () -> Unit,
     toggleFilters: () -> Unit,
     onSearch: (String) -> Unit

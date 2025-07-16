@@ -43,9 +43,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import ru.stanise.animebrowsing.AnimeListQuery
-import ru.stanise.animebrowsing.type.AnimeKindEnum
-import ru.stanise.animebrowsing.type.AnimeStatusEnum
+import ru.stanise.animebrowsing.dto.AnimeType
+import ru.stanise.animebrowsing.dto.Genre
+import ru.stanise.animebrowsing.dto.Status
 import ru.stanise.animebrowsing.ui.model.SearchUiState
 import ru.stanise.animebrowsing.ui.model.SearchUiStateSaver
 import ru.stanise.animebrowsing.ui.model.availableGenres
@@ -54,7 +54,7 @@ import kotlin.math.roundToInt
 
 @Composable
 fun FilterDialog(
-    genres: List<AnimeListQuery.Genre>,
+    genres: List<Genre>,
     onDismiss: () -> Unit,
     onApply: (SearchUiState) -> Unit,
     modifier: Modifier = Modifier
@@ -91,7 +91,7 @@ fun FilterDialog(
                     title = "Genres",
                     items = genres,
                     selectedItems = searchState.selectedGenres,
-                    itemId = { it.id },
+                    itemId = { it.id.toString() },
                     itemLabel = { it.name },
                     onItemToggle =  onGenreToggle,
                     onSelectCancel = onGenreToggle,
@@ -102,7 +102,7 @@ fun FilterDialog(
 
                 CollapsibleFilterSection(
                     title = "Status",
-                    items = AnimeStatusEnum.knownEntries,
+                    items = Status.entries,
                     selectedItems = searchState.selectedStatus,
                     itemId = { it.rawValue },
                     itemLabel = { it.rawValue},
@@ -115,7 +115,7 @@ fun FilterDialog(
 
                 CollapsibleFilterSection(
                     title = "Kind",
-                    items = AnimeKindEnum.knownEntries,
+                    items = AnimeType.entries,
                     selectedItems = searchState.selectedKind,
                     itemId = { it.rawValue },
                     itemLabel = { it.rawValue},
@@ -263,7 +263,7 @@ fun GenreSelectorPreview() {
         title = "Genres",
         items = availableGenres,
         selectedItems = selectedGenres,
-        { it.id },
+        { it.id.toString() },
         { it.name },
         { it ->
             if (selectedGenres.contains(it)) selectedGenres.remove(it) else selectedGenres.add(it)

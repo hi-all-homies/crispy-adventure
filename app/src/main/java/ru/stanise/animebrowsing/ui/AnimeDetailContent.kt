@@ -35,12 +35,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import ru.stanise.animebrowsing.AnimeListQuery
+import ru.stanise.animebrowsing.dto.Anime
 import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
 import ru.stanise.animebrowsing.R
+import ru.stanise.animebrowsing.dto.AnimeType
+import ru.stanise.animebrowsing.dto.Genre
+import ru.stanise.animebrowsing.dto.Image
+import ru.stanise.animebrowsing.dto.Images
+import ru.stanise.animebrowsing.dto.Season
+import ru.stanise.animebrowsing.dto.Status
+import ru.stanise.animebrowsing.dto.Title
 
 @Composable
-fun AnimeDetailScreen(anime: AnimeListQuery.Anime, modifier: Modifier = Modifier) {
+fun AnimeDetailScreen(anime: Anime, modifier: Modifier = Modifier) {
     var synopsisExpanded by remember { mutableStateOf(false) }
 
     LazyColumn(
@@ -50,7 +57,7 @@ fun AnimeDetailScreen(anime: AnimeListQuery.Anime, modifier: Modifier = Modifier
     ) {
         item {
             AnimePoster(
-                anime.poster?.mainUrl ?: anime.poster?.mainAltUrl,
+                anime.images.jpg.imageUrl,
                 modifier = Modifier
                     .aspectRatio(2f / 3f)
                     .clip(MaterialTheme.shapes.medium)
@@ -61,14 +68,14 @@ fun AnimeDetailScreen(anime: AnimeListQuery.Anime, modifier: Modifier = Modifier
 
             // Titles
             Text(
-                text = anime.english ?: anime.russian ?: "No Title",
+                text = "title",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
 
-            if (!anime.english.isNullOrBlank() && !anime.russian.isNullOrBlank()) {
+            if (anime.titles.any { it.type == "Japanese" }) {
                 Text(
-                    text = anime.russian,
+                    text = "japanisse",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -77,7 +84,7 @@ fun AnimeDetailScreen(anime: AnimeListQuery.Anime, modifier: Modifier = Modifier
             Spacer(modifier = Modifier.height(8.dp))
 
             // Genres
-            if (!anime.genres.isNullOrEmpty()) {
+            if (anime.genres.isNotEmpty()) {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -85,7 +92,7 @@ fun AnimeDetailScreen(anime: AnimeListQuery.Anime, modifier: Modifier = Modifier
                     anime.genres.forEach { genre ->
                         AssistChip(
                             onClick = {},
-                            label = { Text(genre.russian) }
+                            label = { Text(genre.name) }
                         )
                     }
                 }
@@ -99,7 +106,7 @@ fun AnimeDetailScreen(anime: AnimeListQuery.Anime, modifier: Modifier = Modifier
             Spacer(modifier = Modifier.height(12.dp))
 
             // Expandable synopsis
-            anime.description?.let { synopsis ->
+            anime.synopsis?.let { synopsis ->
                 Column {
                     Text(
                         text = synopsis,
@@ -115,25 +122,24 @@ fun AnimeDetailScreen(anime: AnimeListQuery.Anime, modifier: Modifier = Modifier
                 }
             }
         }
-        if (anime.characterRoles?.isNotEmpty() == true) {
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                CharacterList(anime.characterRoles)
-            }
-        }
+//        if (anime.characterRoles?.isNotEmpty() == true) {
+//            item {
+//                Spacer(modifier = Modifier.height(16.dp))
+//                CharacterList(anime.characterRoles)
+//            }
+//        }
     }
 }
 
 
 @Composable
-private fun InfoRow(anime: AnimeListQuery.Anime) {
+private fun InfoRow(anime: Anime) {
     val infoItems = listOfNotNull(
-        anime.season?.replaceFirstChar { it.uppercaseChar() },
-        anime.rating?.name,
-        anime.kind?.name,
-        anime.episodes.takeIf { it > 0 }?.let { "$it eps" },
+        anime.season?.rawValue?.replaceFirstChar { it.uppercaseChar() },
+        anime.year?.let { "Year: $it" },
+        anime.type?.rawValue,
+        anime.episodes?.takeIf { it > 0 }?.let { "$it eps" },
         anime.score?.let { "Score: $it" },
-        anime.airedOn?.year?.toString()
     )
 
     if (infoItems.isNotEmpty()) {
@@ -152,56 +158,91 @@ private fun InfoRow(anime: AnimeListQuery.Anime) {
 }
 
 
-@Composable
-fun CharacterList(
-    characterRoles: List<AnimeListQuery.CharacterRole>,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier) {
-        Text(
-            text = "Characters",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(characterRoles) { role ->
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.width(100.dp)
-                ) {
-                    AsyncImage(
-                        model = role.character.poster?.mainUrl,
-                        contentDescription = role.character.name,
-                        contentScale = ContentScale.Crop,
-                        placeholder = painterResource(R.drawable.placeholder),
-                        error = painterResource(R.drawable.error),
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = role.character.name,
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-        }
-    }
-}
+//@Composable
+//fun CharacterList(
+//    characterRoles: List<CharacterRole>,
+//    modifier: Modifier = Modifier
+//) {
+//    Column(modifier = modifier) {
+//        Text(
+//            text = "Characters",
+//            style = MaterialTheme.typography.titleMedium,
+//            fontWeight = FontWeight.SemiBold,
+//            modifier = Modifier.padding(bottom = 8.dp)
+//        )
+//
+//        LazyRow(
+//            horizontalArrangement = Arrangement.spacedBy(12.dp)
+//        ) {
+//            items(characterRoles) { role ->
+//                Column(
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                    modifier = Modifier.width(100.dp)
+//                ) {
+//                    AsyncImage(
+//                        model = role.character.poster?.mainUrl,
+//                        contentDescription = role.character.name,
+//                        contentScale = ContentScale.Crop,
+//                        placeholder = painterResource(R.drawable.placeholder),
+//                        error = painterResource(R.drawable.error),
+//                        modifier = Modifier
+//                            .size(100.dp)
+//                            .clip(CircleShape)
+//                    )
+//                    Spacer(modifier = Modifier.height(4.dp))
+//                    Text(
+//                        text = role.character.name,
+//                        style = MaterialTheme.typography.bodySmall,
+//                        textAlign = TextAlign.Center,
+//                        maxLines = 2,
+//                        overflow = TextOverflow.Ellipsis
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}
 
 
 @Preview(showBackground = true)
 @Composable
 fun AnimeDetailPreview() {
+
+    val stubAnime = Anime(
+        id = 1,
+        images = Images( // You should create a stub for Images too
+            jpg = Image(
+                imageUrl = "https://example.com/image.jpg",
+                largeImageUrl = "https://example.com/image.jpg"
+            )
+        ),
+        titles = listOf(
+            Title(type = "Default", title = "Stub Anime Title"),
+            Title(type = "English", title = "Stub Anime Title EN")
+        ),
+        type = AnimeType.TV,
+        episodes = 12,
+        status = Status.COMPLETE,
+        duration = "24 min per ep",
+        score = 8.5,
+        synopsis = "This is a stub synopsis for the anime.",
+        background = "Some background info.",
+        season = Season.SPRING,
+        year = 2022,
+        genres = listOf(
+            Genre(id = 1, name = "Action"),
+            Genre(id = 2, name = "Adventure")
+        ),
+        themes = listOf(
+            Genre(id = 66, name = "Mahou Shoujo")
+        ),
+        demographics = listOf(
+            Genre(id = 42, name = "Seinen")
+        )
+    )
+
+
     AnimeBrowsingTheme {
-        AnimeDetailScreen(sampleAnime)
+        AnimeDetailScreen(stubAnime)
     }
 }

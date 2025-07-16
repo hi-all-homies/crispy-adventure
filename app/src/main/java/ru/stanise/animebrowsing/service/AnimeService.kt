@@ -1,9 +1,16 @@
 package ru.stanise.animebrowsing.service
 
-import ru.stanise.animebrowsing.AnimeListQuery
-import ru.stanise.animebrowsing.ui.model.SearchUiState
+import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.QueryMap
+import ru.stanise.animebrowsing.dto.AnimePayload
+import ru.stanise.animebrowsing.dto.AnimeListPayload
 
 interface AnimeService {
 
-    suspend fun getAnimeList(searchQuery: SearchUiState) : List<AnimeListQuery.Anime>
+    @GET("anime")
+    suspend fun getAnimeList(@QueryMap params: Map<String, @JvmSuppressWildcards Any>) : AnimeListPayload
+
+    @GET("anime/{id}")
+    suspend fun getAnimeById(@Path("id") id: Int) : AnimePayload
 }
