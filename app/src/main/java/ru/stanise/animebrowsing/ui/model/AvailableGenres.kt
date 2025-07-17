@@ -2,7 +2,7 @@ package ru.stanise.animebrowsing.ui.model
 
 import ru.stanise.animebrowsing.dto.Genre
 
-val availableGenres = listOf(
+val availableGenres = setOf(
 	Genre(1, "Action"),
 	Genre(2, "Adventure"),
 	Genre(46, "Award Winning"),

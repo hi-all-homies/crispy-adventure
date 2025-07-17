@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +64,7 @@ fun AnimeListItem(
             AnimePoster(
                 anime.images.jpg.imageUrl,
                 modifier = Modifier
-                    .height(180.dp)
+                    .height(185.dp)
                     .aspectRatio(2f / 3f)
                     .clip(MaterialTheme.shapes.medium)
                     .background(MaterialTheme.colorScheme.surfaceVariant)
@@ -79,6 +80,8 @@ fun AnimeListItem(
                     overflow = TextOverflow.Ellipsis
                 )
 
+                anime.status?.let { StatusChip(it) }
+
                 anime.let {
                     val label = it.getSeasonYear()
                     if (label.isNotBlank()) {
@@ -90,7 +93,7 @@ fun AnimeListItem(
                     Text(
                         text = it.rawValue,
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 2.dp)
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
 
@@ -98,21 +101,6 @@ fun AnimeListItem(
                     LabeledIconRow(it.toString(), Icons.Default.Star, MaterialTheme.typography.bodyMedium)
                 }
 
-                anime.episodes?.let {
-                    Text(
-                        text = "Episodes: $it",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
-
-                anime.duration?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
                 GenresRow(anime)
             }
         }
@@ -122,7 +110,7 @@ fun AnimeListItem(
 @Composable
 fun LabeledIconRow(text: String, icon: ImageVector, textStyle: TextStyle){
     Row(
-        modifier = Modifier.padding(top = 2.dp),
+        modifier = Modifier.padding(top = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -159,6 +147,19 @@ fun GenresRow(anime: Anime, modifier: Modifier = Modifier){
         }
     }
 }
+
+
+@Composable
+fun StatusChip(status: Status){
+    val color = if (status == Status.COMPLETE) MaterialTheme.colorScheme.error else if (status == Status.AIRING) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
+    AssistChip(
+        onClick = {},
+        label = { Text(text = status.rawValue) },
+        colors = AssistChipDefaults.assistChipColors(labelColor = color),
+        border = AssistChipDefaults.assistChipBorder(enabled = true, borderColor = color),
+    )
+}
+
 
 @Preview
 @Composable

@@ -101,7 +101,7 @@ class AnimeModel(private val animeRepo: AnimeRepo, private val nav: Navigator) :
                     onEmpty()
                 }
                 else {
-                    onSuccess(result)
+                    onSuccess(result.distinctBy { it.id })
                     currentPage++
                     nav.navigateTo(AppScreen.AnimeList)
                 }

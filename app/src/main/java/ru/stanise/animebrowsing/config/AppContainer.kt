@@ -1,15 +1,22 @@
 package ru.stanise.animebrowsing.config
 
+import android.content.Context
+import androidx.room.Room
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import ru.stanise.animebrowsing.data.local.dao.AnimeDao
+import ru.stanise.animebrowsing.data.local.db.AppDatabase
 import ru.stanise.animebrowsing.repository.AnimeRepo
 import ru.stanise.animebrowsing.repository.CharacterRepo
+import ru.stanise.animebrowsing.repository.GenreRepo
 import ru.stanise.animebrowsing.repository.RetrofitAnimeRepo
 import ru.stanise.animebrowsing.repository.RetrofitCharacterRepo
+import ru.stanise.animebrowsing.repository.RetrofitGenreRepo
 import ru.stanise.animebrowsing.service.AnimeService
 import ru.stanise.animebrowsing.service.CharacterService
+import ru.stanise.animebrowsing.service.GenreService
 import ru.stanise.animebrowsing.ui.nav.Navigator
 
 
@@ -17,10 +24,12 @@ interface AppContainer {
     val animeRepo: AnimeRepo
     val navigator: Navigator
     val characterRepo: CharacterRepo
+    val genreRepo: GenreRepo
+    val animeDao: AnimeDao
 }
 
 
-class DefaultAppContainer : AppContainer {
+class DefaultAppContainer(context: Context) : AppContainer {
     private val contentType = "application/json".toMediaType()
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -48,5 +57,25 @@ class DefaultAppContainer : AppContainer {
     }
     override val characterRepo: CharacterRepo by lazy {
         RetrofitCharacterRepo(characterService)
+    }
+
+    private val genreService: GenreService by lazy {
+        retrofit.create(GenreService::class.java)
+    }
+
+    override val genreRepo: GenreRepo by lazy {
+        RetrofitGenreRepo(genreService)
+    }
+
+    private val appDatabase: AppDatabase by lazy {
+        Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            "anime_database"
+        ).build()
+    }
+
+    override val animeDao: AnimeDao by lazy {
+        appDatabase.animeDao()
     }
 }

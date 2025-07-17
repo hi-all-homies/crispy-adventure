@@ -43,9 +43,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import ru.stanise.animebrowsing.dto.AnimeType
 import ru.stanise.animebrowsing.dto.Genre
-import ru.stanise.animebrowsing.dto.Status
+import ru.stanise.animebrowsing.dto.allowedStatuses
+import ru.stanise.animebrowsing.dto.allowedTypes
 import ru.stanise.animebrowsing.ui.model.SearchUiState
 import ru.stanise.animebrowsing.ui.model.SearchUiStateSaver
 import ru.stanise.animebrowsing.ui.model.availableGenres
@@ -102,7 +102,7 @@ fun FilterDialog(
 
                 CollapsibleFilterSection(
                     title = "Status",
-                    items = Status.entries,
+                    items = allowedStatuses,
                     selectedItems = searchState.selectedStatus,
                     itemId = { it.rawValue },
                     itemLabel = { it.rawValue},
@@ -115,7 +115,7 @@ fun FilterDialog(
 
                 CollapsibleFilterSection(
                     title = "Kind",
-                    items = AnimeType.entries,
+                    items = allowedTypes,
                     selectedItems = searchState.selectedKind,
                     itemId = { it.rawValue },
                     itemLabel = { it.rawValue},
@@ -261,7 +261,7 @@ fun GenreSelectorPreview() {
 
     CollapsibleFilterSection(
         title = "Genres",
-        items = availableGenres,
+        items = availableGenres.toList(),
         selectedItems = selectedGenres,
         { it.id.toString() },
         { it.name },

@@ -2,8 +2,10 @@ package ru.stanise.animebrowsing.ui
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -86,14 +88,24 @@ fun AnimeDetailScreen(anime: Anime, modifier: Modifier = Modifier) {
                     )
                 }
             }
-            Spacer(modifier = modifier.height(8.dp))
+            anime.status?.let { StatusChip(it) }
 
-            anime.type?.let {
-                Text(
-                    text = it.rawValue,
-                    style = MaterialTheme.typography.bodyLarge
-                )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(28.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                anime.score?.let {
+                    LabeledIconRow(it.toString(), Icons.Default.Star, MaterialTheme.typography.bodyLarge)
+                }
+
+                anime.type?.let {
+                    Text(
+                        text = it.rawValue,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
+
             Spacer(modifier = modifier.height(8.dp))
 
             anime.let {
@@ -105,26 +117,22 @@ fun AnimeDetailScreen(anime: Anime, modifier: Modifier = Modifier) {
 
             Spacer(modifier = modifier.height(8.dp))
 
-            anime.score?.let {
-                LabeledIconRow(it.toString(), Icons.Default.Star, MaterialTheme.typography.bodyLarge)
-            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(28.dp)
+            ) {
+                anime.episodes?.let {
+                    Text(
+                        text = "Episodes: $it",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                }
 
-            Spacer(modifier = modifier.height(8.dp))
-
-            anime.episodes?.let {
-                Text(
-                    text = "Episodes: $it",
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-            }
-
-            Spacer(modifier = modifier.height(8.dp))
-
-            anime.duration?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
+                anime.duration?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                }
             }
 
             Spacer(modifier = modifier.height(8.dp))

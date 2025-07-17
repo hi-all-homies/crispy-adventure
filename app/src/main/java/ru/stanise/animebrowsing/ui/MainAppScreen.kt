@@ -17,9 +17,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.collectLatest
 import ru.stanise.animebrowsing.ui.model.AnimeModel
+import ru.stanise.animebrowsing.ui.model.GenreModel
 import ru.stanise.animebrowsing.ui.model.SearchModel
 import ru.stanise.animebrowsing.ui.model.SearchUiState
-import ru.stanise.animebrowsing.ui.model.availableGenres
 import ru.stanise.animebrowsing.ui.nav.AppScreen
 import ru.stanise.animebrowsing.ui.nav.NavCommand
 import ru.stanise.animebrowsing.ui.nav.Navigator
@@ -31,7 +31,8 @@ import ru.stanise.animebrowsing.ui.nav.safeNavigate
 fun MainScreen(
     navigator: Navigator,
     searchModel: SearchModel = viewModel(),
-    animeModel: AnimeModel = viewModel(factory = AnimeModel.Factory)
+    animeModel: AnimeModel = viewModel(factory = AnimeModel.Factory),
+    genreModel: GenreModel=  viewModel(factory = GenreModel.Factory)
 ) {
     val navController = rememberNavController()
     val screenState = currentScreen(navController)
@@ -39,6 +40,8 @@ fun MainScreen(
     val selectedAnime = animeModel.selectedAnime
 
     val searchState by searchModel.filters.collectAsState()
+
+    val genreState by genreModel.genreState.collectAsState()
 
     var visibleDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -86,6 +89,7 @@ fun MainScreen(
         ) {
             composable(AppScreen.Launcher.name) {
                 LauncherScreen {
+                    genreModel.fetchGenres()
                     animeModel.getAnimeList(SearchUiState())
                 }
             }
@@ -117,7 +121,7 @@ fun MainScreen(
         if (visibleDialog){
             FilterDialog(
                 onDismiss = { visibleDialog = !visibleDialog },
-                genres = availableGenres,
+                genres = genreState,
                 onApply = {
                     animeModel.getAnimeList(searchModel.searchByFilters(it))
                     visibleDialog = false

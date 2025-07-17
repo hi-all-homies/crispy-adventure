@@ -20,3 +20,5 @@ enum class AnimeType(val rawValue: String) {
 
     UNKNOWN("unknown")
 }
+
+val allowedTypes = AnimeType.entries.filter { it != AnimeType.UNKNOWN }

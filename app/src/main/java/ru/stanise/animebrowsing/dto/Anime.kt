@@ -2,6 +2,8 @@ package ru.stanise.animebrowsing.dto
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import ru.stanise.animebrowsing.data.local.entity.AnimeEntity
+import ru.stanise.animebrowsing.data.local.entity.AnimeWithGenres
 
 @Serializable
 data class Anime(
@@ -59,3 +61,41 @@ fun Anime.getSeasonYear(): String {
     return listOfNotNull(season?.rawValue, year?.toString())
         .joinToString(" ")
 }
+
+fun AnimeWithGenres.toDto(): Anime {
+    return Anime(
+        id = anime.id,
+        images = Images(jpg = Image(imageUrl = anime.image)),
+        titles = emptyList(),
+        type = anime.type,
+        episodes = anime.episodes,
+        status = anime.status,
+        duration = anime.duration,
+        score = anime.score,
+        synopsis = "",
+        background = "",
+        season = anime.season,
+        year = anime.year,
+        genres = genres,
+        themes = emptyList(),
+        demographics = emptyList()
+    )
+}
+
+fun Anime.toEntityWithGenres(): Pair<AnimeEntity, List<Genre>> {
+    val animeEntity = AnimeEntity(
+        id = id,
+        title = titles.getEnglishTitleOrFallback(),
+        image = images.jpg.imageUrl,
+        type = type,
+        status = status,
+        season = season,
+        year = year,
+        score = score,
+        duration = duration,
+        episodes = episodes,
+    )
+    val genreEntities = genres + themes + demographics
+    return animeEntity to genreEntities
+}
+

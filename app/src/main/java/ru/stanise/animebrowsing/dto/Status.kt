@@ -12,3 +12,5 @@ enum class Status(val rawValue: String) {
 
     UNKNOWN("unknown")
 }
+
+val allowedStatuses: List<Status> = Status.entries.filter { it != Status.UNKNOWN }
