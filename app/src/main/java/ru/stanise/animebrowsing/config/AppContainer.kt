@@ -6,14 +6,15 @@ import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
-import ru.stanise.animebrowsing.data.local.dao.AnimeDao
 import ru.stanise.animebrowsing.data.local.db.AppDatabase
 import ru.stanise.animebrowsing.repository.AnimeRepo
 import ru.stanise.animebrowsing.repository.CharacterRepo
+import ru.stanise.animebrowsing.repository.FavesRepo
 import ru.stanise.animebrowsing.repository.GenreRepo
 import ru.stanise.animebrowsing.repository.RetrofitAnimeRepo
 import ru.stanise.animebrowsing.repository.RetrofitCharacterRepo
 import ru.stanise.animebrowsing.repository.RetrofitGenreRepo
+import ru.stanise.animebrowsing.repository.RoomFavesRepo
 import ru.stanise.animebrowsing.service.AnimeService
 import ru.stanise.animebrowsing.service.CharacterService
 import ru.stanise.animebrowsing.service.GenreService
@@ -25,7 +26,7 @@ interface AppContainer {
     val navigator: Navigator
     val characterRepo: CharacterRepo
     val genreRepo: GenreRepo
-    val animeDao: AnimeDao
+    val favesRepo: FavesRepo
 }
 
 
@@ -68,14 +69,12 @@ class DefaultAppContainer(context: Context) : AppContainer {
     }
 
     private val appDatabase: AppDatabase by lazy {
-        Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "anime_database"
-        ).build()
+        Room.databaseBuilder(context, AppDatabase::class.java, "anime_database")
+            .fallbackToDestructiveMigration(true)
+            .build()
     }
 
-    override val animeDao: AnimeDao by lazy {
-        appDatabase.animeDao()
+    override val favesRepo: FavesRepo by lazy {
+        RoomFavesRepo(appDatabase.animeDao())
     }
 }

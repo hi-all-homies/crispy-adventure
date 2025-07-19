@@ -11,7 +11,7 @@ import ru.stanise.animebrowsing.dto.Genre
 
 @Database(
     entities = [AnimeEntity::class, Genre::class, AnimeGenreCrossRef::class],
-    version = 1,
+    version = 3,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

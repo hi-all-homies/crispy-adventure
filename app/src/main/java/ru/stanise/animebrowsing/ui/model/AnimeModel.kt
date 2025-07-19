@@ -65,12 +65,6 @@ class AnimeModel(private val animeRepo: AnimeRepo, private val nav: Navigator) :
         )
     }
 
-    fun goBack() {
-        viewModelScope.launch {
-            nav.back()
-        }
-    }
-
 
     fun selectAnime(anime: Anime){
         viewModelScope.launch {

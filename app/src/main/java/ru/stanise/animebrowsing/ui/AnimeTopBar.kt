@@ -8,6 +8,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,7 +38,8 @@ fun AnimeTopBar(
     currentScreen: AppScreen?,
     onBackClick: () -> Unit,
     toggleFilters: () -> Unit,
-    onSearch: (String) -> Unit
+    onSearch: (String) -> Unit,
+    onToFaves: () -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
@@ -83,6 +85,13 @@ fun AnimeTopBar(
                     modifier = Modifier.size(28.dp)
                 )
             }
+            IconButton(onClick = onToFaves) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = "favorites",
+                    modifier = Modifier.size(28.dp)
+                )
+            }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary,
@@ -102,6 +111,6 @@ fun AnimeTopBar(
 @Composable
 fun AppBarPreview(){
     AnimeBrowsingTheme {
-        AnimeTopBar(AppScreen.NotFound, {}, {}, {})
+        AnimeTopBar(AppScreen.NotFound, {}, {}, {}, {})
     }
 }
