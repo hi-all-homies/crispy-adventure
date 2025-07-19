@@ -37,7 +37,7 @@ fun LauncherScreen(onReady: () -> Unit) {
 
     LaunchedEffect(Unit) {
         visible = true
-        delay(1000)
+        delay(850)
         onReady()
     }
 

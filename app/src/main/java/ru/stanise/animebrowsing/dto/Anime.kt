@@ -66,14 +66,14 @@ fun AnimeWithGenres.toDto(): Anime {
     return Anime(
         id = anime.id,
         images = Images(jpg = Image(imageUrl = anime.image)),
-        titles = emptyList(),
+        titles = listOf(Title(type = "English", title = anime.title)),
         type = anime.type,
         episodes = anime.episodes,
         status = anime.status,
         duration = anime.duration,
         score = anime.score,
-        synopsis = "",
-        background = "",
+        synopsis = anime.synopsis,
+        background = anime.background,
         season = anime.season,
         year = anime.year,
         genres = genres,
@@ -94,6 +94,8 @@ fun Anime.toEntityWithGenres(): Pair<AnimeEntity, List<Genre>> {
         score = score,
         duration = duration,
         episodes = episodes,
+        synopsis = synopsis,
+        background = background
     )
     val genreEntities = genres + themes + demographics
     return animeEntity to genreEntities

@@ -11,11 +11,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import ru.stanise.animebrowsing.config.AnimeApplication
-import ru.stanise.animebrowsing.data.local.dao.AnimeDao
 import ru.stanise.animebrowsing.dto.Genre
+import ru.stanise.animebrowsing.repository.FavesRepo
 import ru.stanise.animebrowsing.repository.GenreRepo
 
-class GenreModel(private val genreRepo: GenreRepo, private val animeDao: AnimeDao) : ViewModel() {
+class GenreModel(private val genreRepo: GenreRepo, private val favesRepo: FavesRepo) : ViewModel() {
 
     private val _genreState = MutableStateFlow<List<Genre>>(emptyList())
     val genreState = _genreState.asStateFlow()
@@ -24,10 +24,10 @@ class GenreModel(private val genreRepo: GenreRepo, private val animeDao: AnimeDa
     fun fetchGenres(){
         viewModelScope.launch {
             try {
-                _genreState.value = animeDao.getGenres()
+                _genreState.value = favesRepo.getGenres()
                     .ifEmpty {
                         val fetched = genreRepo.getGenres()
-                        animeDao.insertGenres(fetched)
+                        favesRepo.insertGenres(fetched)
                         fetched
                     }
                     .filter { it in availableGenres }
@@ -46,8 +46,8 @@ class GenreModel(private val genreRepo: GenreRepo, private val animeDao: AnimeDa
             initializer {
                 val application = (this[APPLICATION_KEY] as AnimeApplication)
                 val genreRepo = application.container.genreRepo
-                val animeDao = application.container.animeDao
-                GenreModel(genreRepo, animeDao)
+                val favesRepo = application.container.favesRepo
+                GenreModel(genreRepo, favesRepo)
             }
         }
     }

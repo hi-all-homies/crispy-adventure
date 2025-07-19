@@ -18,11 +18,14 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.BookmarkAdd
+import androidx.compose.material.icons.outlined.BookmarkRemove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +40,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import ru.stanise.animebrowsing.dto.Anime
 import ru.stanise.animebrowsing.dto.AnimeType
 import ru.stanise.animebrowsing.dto.Genre
@@ -48,10 +52,20 @@ import ru.stanise.animebrowsing.dto.Title
 import ru.stanise.animebrowsing.dto.getEnglishTitleOrFallback
 import ru.stanise.animebrowsing.dto.getJapaneseTitleOrFallback
 import ru.stanise.animebrowsing.dto.getSeasonYear
+import ru.stanise.animebrowsing.ui.model.FavesModel
 import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
 
 @Composable
-fun AnimeDetailScreen(anime: Anime, modifier: Modifier = Modifier) {
+fun AnimeDetailScreen(
+    anime: Anime,
+    onFaveAdded: (String) -> Unit,
+    onFaveRemoved: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    favesModel: FavesModel = viewModel(factory = FavesModel.Factory)
+) {
+
+    val faves by favesModel.favesState.collectAsState()
+    val faveOnDelete by favesModel.faveUiState.collectAsState()
 
     LazyColumn(
         modifier = modifier
@@ -88,11 +102,35 @@ fun AnimeDetailScreen(anime: Anime, modifier: Modifier = Modifier) {
                     )
                 }
             }
-            anime.status?.let { StatusChip(it) }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = modifier.fillMaxWidth()
+            ) {
+                val isBookmarked = faves.any { it.id == anime.id }
+
+                anime.status?.let { StatusChip(it) }
+                Spacer(modifier = modifier.weight(1f))
+
+                IconButton(onClick = {
+                    if (isBookmarked) favesModel.updateFaveOnDelete(anime)
+                    else {
+                        favesModel.toggleFaves(anime)
+                        onFaveAdded(anime.titles.getEnglishTitleOrFallback())
+                    }
+                }) {
+                    Icon(
+                        imageVector = if (isBookmarked) Icons.Outlined.BookmarkRemove else Icons.Outlined.BookmarkAdd,
+                        contentDescription = if (isBookmarked) "delete fave" else "add to faves",
+                        tint = if (isBookmarked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(28.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = modifier.fillMaxWidth()
             ) {
                 anime.score?.let {
                     LabeledIconRow(it.toString(), Icons.Default.Star, MaterialTheme.typography.bodyLarge)
@@ -100,7 +138,7 @@ fun AnimeDetailScreen(anime: Anime, modifier: Modifier = Modifier) {
 
                 anime.type?.let {
                     Text(
-                        text = it.rawValue,
+                        text = it.rawValue.uppercase(),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -150,6 +188,18 @@ fun AnimeDetailScreen(anime: Anime, modifier: Modifier = Modifier) {
             Spacer(modifier = modifier.height(12.dp))
             CharacterList(anime.id)
         }
+    }
+
+    if (faveOnDelete.isShown){
+        DeleteDialog(
+            onConfirm = {
+                faveOnDelete.faveToDelete?.let {
+                    favesModel.toggleFaves(it)
+                    onFaveRemoved(anime.titles.getEnglishTitleOrFallback())
+                }
+            },
+            onDismiss = favesModel::updateFaveOnDelete
+        )
     }
 }
 
@@ -253,8 +303,7 @@ fun AnimeDetailPreview() {
         )
     )
 
-
     AnimeBrowsingTheme {
-        AnimeDetailScreen(stubAnime)
+
     }
 }

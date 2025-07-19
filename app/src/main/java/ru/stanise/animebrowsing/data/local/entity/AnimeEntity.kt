@@ -22,4 +22,6 @@ data class AnimeEntity(
     val score: Double?,
     val duration: String?,
     val episodes: Int?,
+    val synopsis: String?,
+    val background: String?
 )

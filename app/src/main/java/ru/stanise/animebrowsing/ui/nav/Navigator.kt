@@ -8,11 +8,11 @@ class Navigator {
     private val _commands = MutableSharedFlow<NavCommand>(extraBufferCapacity = 1)
     val commands: SharedFlow<NavCommand> = _commands.asSharedFlow()
 
-    suspend fun navigateTo(screen: AppScreen) {
-        _commands.emit(NavCommand.To(screen))
+    fun navigateTo(screen: AppScreen) {
+        _commands.tryEmit(NavCommand.To(screen))
     }
 
-    suspend fun back() {
-        _commands.emit(NavCommand.Back)
+    fun back() {
+        _commands.tryEmit(NavCommand.Back)
     }
 }

@@ -5,6 +5,7 @@ import ru.stanise.animebrowsing.data.local.entity.AnimeEntity
 import ru.stanise.animebrowsing.data.local.entity.AnimeGenreCrossRef
 import ru.stanise.animebrowsing.data.local.entity.AnimeWithGenres
 import ru.stanise.animebrowsing.dto.Genre
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AnimeDao {
@@ -22,14 +23,25 @@ interface AnimeDao {
     suspend fun insertAnimeGenreCrossRefs(crossRefs: List<AnimeGenreCrossRef>)
 
     @Transaction
-    @Query("SELECT * FROM anime WHERE id = :animeId")
-    suspend fun getAnimeWithGenres(animeId: Int): AnimeWithGenres?
+    @Query("SELECT * FROM anime")
+    fun getAnimeWithGenres(): Flow<List<AnimeWithGenres>>
+
+    @Query("SELECT * FROM anime WHERE anime.id = :id")
+    suspend fun getAnimeById(id: Int): AnimeEntity?
+
+    @Delete
+    suspend fun deleteAnime(anime: AnimeEntity)
 
     @Transaction
-    suspend fun insertAnimeWithGenres(anime: AnimeEntity, genres: List<Genre>) {
-        insertAnime(anime)
-        val crossRefs = genres.map { AnimeGenreCrossRef(animeId = anime.id, genreId = it.id) }
-        insertAnimeGenreCrossRefs(crossRefs)
+    suspend fun toggleFaves(anime: AnimeEntity, genres: List<Genre>) {
+        val alreadyStored = getAnimeById(anime.id)
+        if (alreadyStored != null){
+            deleteAnime(alreadyStored)
+        }
+        else {
+            insertAnime(anime)
+            val crossRefs = genres.map { AnimeGenreCrossRef(animeId = anime.id, genreId = it.id) }
+            insertAnimeGenreCrossRefs(crossRefs)
+        }
     }
-
 }
