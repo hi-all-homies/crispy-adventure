@@ -12,6 +12,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,15 +22,16 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import ru.stanise.animebrowsing.dto.Anime
 import ru.stanise.animebrowsing.ui.model.AnimeModel
-import ru.stanise.animebrowsing.ui.model.SearchUiState
+import ru.stanise.animebrowsing.ui.model.SearchModel
 
 @Composable
 fun AnimeListScreen(
     animeModel: AnimeModel,
-    searchUiState: SearchUiState,
+    searchModel: SearchModel,
     modifier: Modifier = Modifier,
     onAnimeClick: (Anime) -> Unit
 ) {
+    val searchState by searchModel.filters.collectAsState()
     val animeList = animeModel.animeList
     val listState = rememberLazyListState()
 
@@ -70,7 +73,7 @@ fun AnimeListScreen(
             .distinctUntilChanged()
             .collectLatest { (lastVisibleIndex, totalItems) ->
                 if (lastVisibleIndex >= totalItems - 5) {
-                    animeModel.getNextPage(searchUiState)
+                    animeModel.getNextPage(searchState)
                 }
             }
     }

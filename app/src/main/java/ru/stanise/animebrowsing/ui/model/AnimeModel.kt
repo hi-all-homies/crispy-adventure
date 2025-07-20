@@ -41,7 +41,6 @@ class AnimeModel(private val animeRepo: AnimeRepo, private val nav: Navigator) :
         currentPage = 1
         hasMorePages = true
         animeList.clear()
-
         handleRequest(
             { animeRepo.getAnimeList(searchUiState) },
             {
@@ -79,10 +78,10 @@ class AnimeModel(private val animeRepo: AnimeRepo, private val nav: Navigator) :
         onEmpty: suspend () -> Unit = { nav.navigateTo(AppScreen.NotFound) },
         onError: suspend () -> Unit = { nav.navigateTo(AppScreen.Error) }
     ){
-        isFetchingMore = true
         viewModelScope.launch {
+            isFetchingMore = true
             if (currentPage == 1){
-                nav.navigateTo(AppScreen.Loading)
+                nav.navigateTo(AppScreen.AnimeList)
             }
             try {
                 val result = requestBlock()
