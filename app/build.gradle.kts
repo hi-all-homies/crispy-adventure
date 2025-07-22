@@ -15,7 +15,7 @@ android {
 
     defaultConfig {
         applicationId = "ru.stanise.animebrowsing"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -52,6 +52,8 @@ room {
 }
 
 dependencies {
+    implementation(libs.ycharts)
+
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)

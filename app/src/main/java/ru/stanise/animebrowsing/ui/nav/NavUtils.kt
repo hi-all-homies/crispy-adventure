@@ -1,8 +1,10 @@
 package ru.stanise.animebrowsing.ui.nav
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
@@ -16,20 +18,47 @@ fun currentScreen(navController: NavHostController): AppScreen? {
 }
 
 
-fun NavHostController.safeNavigate(
-    route: String,
-    popUpToRoute: String? = null,
-    inclusive: Boolean = false,
-    launchSingleTop: Boolean = true
-) {
-    val currentRoute = this.currentBackStackEntry?.destination?.route
+fun NavHostController.safeNavigate(route: String) {
+    val currentRoute = currentBackStackEntry?.destination?.route
 
-    if (currentRoute != route) {
-        this.navigate(route) {
-            if (popUpToRoute != null) {
-                popUpTo(popUpToRoute) { this.inclusive = inclusive }
+    if (currentRoute == route) return
+
+    navigate(route) {
+        when (currentRoute) {
+            AppScreen.Launcher.name -> {
+                popUpTo(AppScreen.Launcher.name) {
+                    inclusive = true
+                }
             }
-            this.launchSingleTop = launchSingleTop
+            AppScreen.Error.name -> {
+                popUpTo(AppScreen.Error.name) {
+                    inclusive = true
+                }
+            }
+            AppScreen.NotFound.name -> {
+                popUpTo(AppScreen.NotFound.name) {
+                    inclusive = true
+                }
+            }
+            else -> {
+                launchSingleTop = true
+            }
+        }
+    }
+}
+
+@Composable
+fun ObserveNavigation(navController: NavHostController, onNavigated: () -> Unit) {
+
+    DisposableEffect(navController) {
+        val callback = NavController.OnDestinationChangedListener { _, destination, _ ->
+            onNavigated()
+        }
+
+        navController.addOnDestinationChangedListener(callback)
+
+        onDispose {
+            navController.removeOnDestinationChangedListener(callback)
         }
     }
 }

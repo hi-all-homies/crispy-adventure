@@ -8,6 +8,17 @@ class SearchModel : ViewModel() {
     private val _filters = MutableStateFlow(SearchUiState())
     val filters = _filters.asStateFlow()
 
+    private val _isSearchMode = MutableStateFlow(false)
+    val isSearchMode = _isSearchMode.asStateFlow()
+
+    fun toggleSearchBar(){
+        _isSearchMode.value = !_isSearchMode.value
+    }
+
+    fun closeSearchBar(){
+        _isSearchMode.value = false
+    }
+
 
     fun resetFilters(): SearchUiState {
         _filters.value = SearchUiState(selectedStatus = emptySet())

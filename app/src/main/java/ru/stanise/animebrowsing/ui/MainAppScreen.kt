@@ -14,7 +14,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -28,6 +27,7 @@ import ru.stanise.animebrowsing.ui.model.SearchUiState
 import ru.stanise.animebrowsing.ui.nav.AppScreen
 import ru.stanise.animebrowsing.ui.nav.NavCommand
 import ru.stanise.animebrowsing.ui.nav.Navigator
+import ru.stanise.animebrowsing.ui.nav.ObserveNavigation
 import ru.stanise.animebrowsing.ui.nav.currentScreen
 import ru.stanise.animebrowsing.ui.nav.safeNavigate
 
@@ -44,31 +44,26 @@ fun MainScreen(
 
     val selectedAnime = animeModel.selectedAnime
 
-    val searchState by searchModel.filters.collectAsState()
-
     val genreState by genreModel.genreState.collectAsState()
 
     var visibleDialog by rememberSaveable { mutableStateOf(false) }
 
-    val focusManager = LocalFocusManager.current
-
     LaunchedEffect(Unit) {
         navigator.commands.collectLatest { command ->
-            focusManager.clearFocus(force = true)
 
             when (command) {
                 is NavCommand.To -> {
-                    navController.safeNavigate(
-                        route = command.screen.name,
-                        popUpToRoute = AppScreen.Launcher.name,
-                        inclusive = true
-                    )
+                    navController.safeNavigate(command.screen.name)
                 }
                 is NavCommand.Back -> {
                     navController.popBackStack()
                 }
             }
         }
+    }
+
+    ObserveNavigation(navController) {
+        searchModel.closeSearchBar()
     }
 
     val scope = rememberCoroutineScope()
@@ -88,6 +83,7 @@ fun MainScreen(
     Scaffold(
         topBar = {
             AnimeTopBar(
+                searchModel = searchModel,
                 currentScreen = screenState,
                 onBackClick = {
                     if (screenState == AppScreen.NotFound)
@@ -95,8 +91,10 @@ fun MainScreen(
                     else
                         navigator.back()
                 },
+                onSearch = { query ->
+                    animeModel.getAnimeList(searchModel.searchByQuery(query))
+                },
                 toggleFilters = { visibleDialog = !visibleDialog },
-                onSearch = { animeModel.getAnimeList(searchModel.searchByQuery(it)) },
                 onToFaves = { navigator.navigateTo(AppScreen.Favorites) }
             )
         },
@@ -116,7 +114,7 @@ fun MainScreen(
             }
 
             composable(AppScreen.AnimeList.name) {
-                AnimeListScreen(animeModel, searchState){
+                AnimeListScreen(animeModel, searchModel){
                     animeModel.selectAnime(it)
                 }
             }
@@ -132,11 +130,7 @@ fun MainScreen(
             }
 
             composable(AppScreen.Favorites.name) {
-                FavoriteScreen(onGoTo = animeModel::selectAnime, onFaveRemoved = onRemoved)
-            }
-
-            composable(AppScreen.Loading.name) {
-                LoadingScreen()
+                FavoritesScreen(onGoTo = animeModel::selectAnime, onFaveRemoved = onRemoved)
             }
 
             composable(AppScreen.NotFound.name) {

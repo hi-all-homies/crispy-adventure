@@ -25,15 +25,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import ru.stanise.animebrowsing.dto.Anime
 import ru.stanise.animebrowsing.dto.AnimeType
 import ru.stanise.animebrowsing.dto.Genre
@@ -43,28 +40,27 @@ import ru.stanise.animebrowsing.dto.Season
 import ru.stanise.animebrowsing.dto.Status
 import ru.stanise.animebrowsing.dto.Title
 import ru.stanise.animebrowsing.dto.getEnglishTitleOrFallback
-import ru.stanise.animebrowsing.ui.model.FavesModel
+import ru.stanise.animebrowsing.ui.model.FavesUiState
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FavoriteScreen(
+fun FavesTab(
+    faves: List<Anime>,
+    faveOnDelete: FavesUiState,
     modifier: Modifier = Modifier,
-    favesModel: FavesModel = viewModel(factory = FavesModel.Factory),
+    toggleFaves: (Anime) -> Unit,
+    onDelete: (Anime?) -> Unit,
     onGoTo: (Anime) -> Unit,
     onFaveRemoved: (String) -> Unit
 ){
-    val faves by favesModel.favesState.collectAsState()
-    val faveOnDelete by favesModel.faveUiState.collectAsState()
-
-
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         items(faves, { it.id }){
-            FaveAnimeItem(it, { onGoTo(it) }, onDelete = { favesModel.updateFaveOnDelete(it) })
+            FaveAnimeItem(it, { onGoTo(it) }, onDelete = { onDelete(it) })
         }
     }
 
@@ -72,11 +68,11 @@ fun FavoriteScreen(
         DeleteDialog(
             onConfirm = {
                 faveOnDelete.faveToDelete?.let {
-                    favesModel.toggleFaves(it)
+                    toggleFaves(it)
                     onFaveRemoved(it.titles.getEnglishTitleOrFallback())
                 }
             },
-            onDismiss = favesModel::updateFaveOnDelete
+            onDismiss = { onDelete(null) }
         )
     }
 }
