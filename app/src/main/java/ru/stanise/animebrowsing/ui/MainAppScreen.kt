@@ -130,7 +130,7 @@ fun MainScreen(
             }
 
             composable(AppScreen.Favorites.name) {
-                FavoriteScreen(onGoTo = animeModel::selectAnime, onFaveRemoved = onRemoved)
+                FavoritesScreen(onGoTo = animeModel::selectAnime, onFaveRemoved = onRemoved)
             }
 
             composable(AppScreen.NotFound.name) {
