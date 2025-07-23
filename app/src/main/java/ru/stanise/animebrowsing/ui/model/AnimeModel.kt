@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import ru.stanise.animebrowsing.config.AnimeApplication
 import ru.stanise.animebrowsing.config.Config
 import ru.stanise.animebrowsing.dto.Anime
+import ru.stanise.animebrowsing.dto.AnimeType
 import ru.stanise.animebrowsing.repository.AnimeRepo
 import ru.stanise.animebrowsing.ui.nav.AppScreen
 import ru.stanise.animebrowsing.ui.nav.Navigator
@@ -94,7 +95,7 @@ class AnimeModel(private val animeRepo: AnimeRepo, private val nav: Navigator) :
                     onEmpty()
                 }
                 else {
-                    onSuccess(result.distinctBy { it.id })
+                    onSuccess(result.distinctBy { it.id }.filter { it.type != AnimeType.MUSIC } )
                     currentPage++
                     nav.navigateTo(AppScreen.AnimeList)
                 }
