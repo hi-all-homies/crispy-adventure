@@ -9,8 +9,8 @@ import ru.stanise.animebrowsing.ui.model.SearchUiState
 class RetrofitAnimeRepo(val animeService: AnimeService) : AnimeRepo {
 
     override suspend fun getAnimeList(searchUiState: SearchUiState): List<Anime> {
-        return animeService
-            .getAnimeList(searchUiState.toQueryMap())
+        return (if (searchUiState.topRated) animeService.getTopRatedAnimeList(searchUiState.page)
+            else animeService.getAnimeList(searchUiState.toQueryMap()))
             .data
     }
 

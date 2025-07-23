@@ -3,10 +3,12 @@ package ru.stanise.animebrowsing.config
 import android.content.Context
 import androidx.room.Room
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
 import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import ru.stanise.animebrowsing.data.local.db.AppDatabase
+import ru.stanise.animebrowsing.dto.OffsetDateTimeSerializer
 import ru.stanise.animebrowsing.repository.AnimeRepo
 import ru.stanise.animebrowsing.repository.CharacterRepo
 import ru.stanise.animebrowsing.repository.FavesRepo
@@ -19,6 +21,7 @@ import ru.stanise.animebrowsing.service.AnimeService
 import ru.stanise.animebrowsing.service.CharacterService
 import ru.stanise.animebrowsing.service.GenreService
 import ru.stanise.animebrowsing.ui.nav.Navigator
+import java.time.OffsetDateTime
 
 
 interface AppContainer {
@@ -32,7 +35,14 @@ interface AppContainer {
 
 class DefaultAppContainer(context: Context) : AppContainer {
     private val contentType = "application/json".toMediaType()
-    private val json = Json { ignoreUnknownKeys = true }
+
+    val timeSerializersModule = SerializersModule {
+        contextual(OffsetDateTime::class, OffsetDateTimeSerializer)
+    }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        serializersModule = timeSerializersModule
+    }
 
 
 

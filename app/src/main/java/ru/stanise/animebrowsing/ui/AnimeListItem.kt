@@ -30,6 +30,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import ru.stanise.animebrowsing.dto.Aired
 import ru.stanise.animebrowsing.dto.Anime
 import ru.stanise.animebrowsing.dto.AnimeType
 import ru.stanise.animebrowsing.dto.Genre
@@ -41,6 +42,7 @@ import ru.stanise.animebrowsing.dto.Title
 import ru.stanise.animebrowsing.dto.getEnglishTitleOrFallback
 import ru.stanise.animebrowsing.dto.getSeasonYear
 import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
+import java.time.OffsetDateTime
 
 
 @Composable
@@ -62,7 +64,7 @@ fun AnimeListItem(
                 .padding(12.dp)
         ) {
             AnimePoster(
-                anime.images.jpg.imageUrl,
+                anime.images.webp.imageUrl,
                 modifier = Modifier
                     .height(185.dp)
                     .aspectRatio(2f / 3f)
@@ -168,7 +170,7 @@ fun PreviewAnimeListItem() {
     val stubAnime = Anime(
         id = 1,
         images = Images( // You should create a stub for Images too
-            jpg = Image(
+            webp = Image(
                 imageUrl = "https://example.com/image.jpg",
                 largeImageUrl = "https://example.com/image.jpg"
             )
@@ -195,6 +197,10 @@ fun PreviewAnimeListItem() {
         ),
         demographics = listOf(
             Genre(id = 42, name = "Seinen")
+        ),
+        aired = Aired(
+            from = OffsetDateTime.parse("2005-04-15T00:00:00+00:00"),
+            to = OffsetDateTime.parse("2005-09-27T00:00:00+00:00")
         )
     )
 

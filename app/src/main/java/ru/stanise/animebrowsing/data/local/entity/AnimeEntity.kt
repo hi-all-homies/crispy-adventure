@@ -7,6 +7,7 @@ import ru.stanise.animebrowsing.data.local.converter.Converters
 import ru.stanise.animebrowsing.dto.AnimeType
 import ru.stanise.animebrowsing.dto.Season
 import ru.stanise.animebrowsing.dto.Status
+import java.time.OffsetDateTime
 
 @Entity("anime")
 @TypeConverters(Converters::class)
@@ -23,5 +24,7 @@ data class AnimeEntity(
     val duration: String?,
     val episodes: Int?,
     val synopsis: String?,
-    val background: String?
+    val background: String?,
+    val from: OffsetDateTime?,
+    val to: OffsetDateTime?
 )

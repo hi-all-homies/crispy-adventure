@@ -10,5 +10,7 @@ data class Character(
 
     val name: String,
 
-    val images: Images
+    val images: Images,
+
+    val about: String? = null
 )

@@ -5,6 +5,7 @@ import androidx.room.TypeConverter
 import ru.stanise.animebrowsing.dto.AnimeType
 import ru.stanise.animebrowsing.dto.Season
 import ru.stanise.animebrowsing.dto.Status
+import java.time.OffsetDateTime
 
 @ProvidedTypeConverter
 object Converters {
@@ -26,4 +27,14 @@ object Converters {
 
     @TypeConverter
     fun toSeason(value: String?): Season? = value?.let { Season.valueOf(it) }
+
+    @TypeConverter
+    fun fromOffsetDateTime(value: OffsetDateTime?): String? {
+        return value?.toString()
+    }
+
+    @TypeConverter
+    fun toOffsetDateTime(value: String?): OffsetDateTime? {
+        return value?.let { OffsetDateTime.parse(it) }
+    }
 }

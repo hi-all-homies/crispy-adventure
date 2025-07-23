@@ -26,7 +26,7 @@ class SearchModel : ViewModel() {
     }
 
     fun searchByQuery(query: String): SearchUiState {
-        _filters.value = SearchUiState(query = query, selectedStatus = emptySet())
+        _filters.value = SearchUiState(query = query, selectedStatus = emptySet(), topRated = false)
         return _filters.value
     }
 
