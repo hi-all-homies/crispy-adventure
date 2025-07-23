@@ -69,7 +69,7 @@ fun GenresTab(
                 TextCard(modifier) {
                     Text(
                         text = "Genres you like the most (up to 20)",
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
 

@@ -1,9 +1,11 @@
 package ru.stanise.animebrowsing.dto
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import ru.stanise.animebrowsing.data.local.entity.AnimeEntity
 import ru.stanise.animebrowsing.data.local.entity.AnimeWithGenres
+import java.time.OffsetDateTime
 
 @Serializable
 data class Anime(
@@ -34,7 +36,8 @@ data class Anime(
 
     val genres: List<Genre> = emptyList(),
     val themes: List<Genre> = emptyList(),
-    val demographics: List<Genre> = emptyList()
+    val demographics: List<Genre> = emptyList(),
+    val aired: Aired
 )
 
 
@@ -42,6 +45,15 @@ data class Anime(
 data class Title(
     val type: String,
     val title: String
+)
+
+@Serializable
+data class Aired(
+    @Contextual
+    val from: OffsetDateTime? = null,
+
+    @Contextual
+    val to: OffsetDateTime? = null
 )
 
 fun List<Title>.getEnglishTitleOrFallback(): String {
@@ -65,7 +77,7 @@ fun Anime.getSeasonYear(): String {
 fun AnimeWithGenres.toDto(): Anime {
     return Anime(
         id = anime.id,
-        images = Images(jpg = Image(imageUrl = anime.image)),
+        images = Images(webp = Image(imageUrl = anime.image)),
         titles = listOf(Title(type = "English", title = anime.title)),
         type = anime.type,
         episodes = anime.episodes,
@@ -78,7 +90,8 @@ fun AnimeWithGenres.toDto(): Anime {
         year = anime.year,
         genres = genres,
         themes = emptyList(),
-        demographics = emptyList()
+        demographics = emptyList(),
+        aired = Aired(from = anime.from, to = anime.to)
     )
 }
 
@@ -86,7 +99,7 @@ fun Anime.toEntityWithGenres(): Pair<AnimeEntity, List<Genre>> {
     val animeEntity = AnimeEntity(
         id = id,
         title = titles.getEnglishTitleOrFallback(),
-        image = images.jpg.imageUrl,
+        image = images.webp.imageUrl,
         type = type,
         status = status,
         season = season,
@@ -95,7 +108,9 @@ fun Anime.toEntityWithGenres(): Pair<AnimeEntity, List<Genre>> {
         duration = duration,
         episodes = episodes,
         synopsis = synopsis,
-        background = background
+        background = background,
+        from = aired.from,
+        to = aired.to
     )
     val genreEntities = genres + themes + demographics
     return animeEntity to genreEntities

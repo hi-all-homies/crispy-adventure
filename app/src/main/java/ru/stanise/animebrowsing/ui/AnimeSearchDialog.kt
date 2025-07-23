@@ -60,7 +60,7 @@ fun FilterDialog(
     modifier: Modifier = Modifier
 ) {
     var searchState by rememberSaveable(stateSaver = SearchUiStateSaver) {
-        mutableStateOf(SearchUiState())
+        mutableStateOf(SearchUiState(topRated = false))
     }
 
     val onGenreToggle: (String) -> Unit = { genreId ->

@@ -15,5 +15,5 @@ data class Image(
 
 @Serializable
 data class Images(
-    val jpg: Image
+    val webp: Image
 )

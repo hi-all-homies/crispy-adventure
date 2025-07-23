@@ -6,6 +6,8 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 
 object AnimeTypeSerializer : KSerializer<AnimeType> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("AnimeType", PrimitiveKind.STRING)
@@ -41,5 +43,20 @@ object StatusSerializer : KSerializer<Status> {
         encoder.encodeString(
             serialNameMap.entries.find { it.value == value }?.value?.rawValue ?: "unknown"
         )
+    }
+}
+
+
+object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("OffsetDateTime", PrimitiveKind.STRING)
+
+    override fun deserialize(decoder: Decoder): OffsetDateTime {
+        val text = decoder.decodeString()
+        return OffsetDateTime.parse(text, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+    }
+
+    override fun serialize(encoder: Encoder, value: OffsetDateTime) {
+        encoder.encodeString(value.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME))
     }
 }

@@ -17,6 +17,11 @@ fun currentScreen(navController: NavHostController): AppScreen? {
     }
 }
 
+val transientRoutes = setOf(
+    AppScreen.Launcher.name,
+    AppScreen.Error.name,
+    AppScreen.NotFound.name
+)
 
 fun NavHostController.safeNavigate(route: String) {
     val currentRoute = currentBackStackEntry?.destination?.route
@@ -24,23 +29,14 @@ fun NavHostController.safeNavigate(route: String) {
     if (currentRoute == route) return
 
     navigate(route) {
-        when (currentRoute) {
-            AppScreen.Launcher.name -> {
-                popUpTo(AppScreen.Launcher.name) {
-                    inclusive = true
-                }
-            }
-            AppScreen.Error.name -> {
-                popUpTo(AppScreen.Error.name) {
-                    inclusive = true
-                }
-            }
-            AppScreen.NotFound.name -> {
-                popUpTo(AppScreen.NotFound.name) {
-                    inclusive = true
-                }
+        when {
+            currentRoute in transientRoutes -> {
+                popUpTo(currentRoute!!) { inclusive = true }
             }
             else -> {
+                popUpTo(route) {
+                    inclusive = false
+                }
                 launchSingleTop = true
             }
         }

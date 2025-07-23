@@ -9,7 +9,8 @@ data class SearchUiState(
     val selectedStatus: Set<String> = setOf(Status.AIRING.rawValue),
     val minScore: Float = 0f,
     val selectedGenres: Set<String> = emptySet(),
-    val page: Int = 1
+    val page: Int = 1,
+    val topRated: Boolean = true
 )
 
 val SearchUiStateSaver: Saver<SearchUiState, *> = Saver(
@@ -20,7 +21,8 @@ val SearchUiStateSaver: Saver<SearchUiState, *> = Saver(
             state.selectedStatus.toList(),
             state.minScore,
             state.selectedGenres.toList(),
-            state.page
+            state.page,
+            state.topRated
         )
     },
     restore = { list ->
@@ -32,7 +34,8 @@ val SearchUiStateSaver: Saver<SearchUiState, *> = Saver(
                 selectedStatus = (list[2] as List<String>).toSet(),
                 minScore = list[3] as Float,
                 selectedGenres = (list[4] as List<String>).toSet(),
-                page = list[5] as Int
+                page = list[5] as Int,
+                topRated = list[6] as Boolean
             )
         } catch (e: Exception) {
             e.printStackTrace()

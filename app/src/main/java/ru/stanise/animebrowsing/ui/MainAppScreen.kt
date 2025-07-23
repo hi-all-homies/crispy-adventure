@@ -23,7 +23,6 @@ import kotlinx.coroutines.launch
 import ru.stanise.animebrowsing.ui.model.AnimeModel
 import ru.stanise.animebrowsing.ui.model.GenreModel
 import ru.stanise.animebrowsing.ui.model.SearchModel
-import ru.stanise.animebrowsing.ui.model.SearchUiState
 import ru.stanise.animebrowsing.ui.nav.AppScreen
 import ru.stanise.animebrowsing.ui.nav.NavCommand
 import ru.stanise.animebrowsing.ui.nav.Navigator
@@ -43,7 +42,7 @@ fun MainScreen(
     val screenState = currentScreen(navController)
 
     val selectedAnime = animeModel.selectedAnime
-
+    val searchState by searchModel.filters.collectAsState()
     val genreState by genreModel.genreState.collectAsState()
 
     var visibleDialog by rememberSaveable { mutableStateOf(false) }
@@ -109,7 +108,7 @@ fun MainScreen(
             composable(AppScreen.Launcher.name) {
                 LauncherScreen {
                     genreModel.fetchGenres()
-                    animeModel.getAnimeList(SearchUiState())
+                    animeModel.getAnimeList(searchState)
                 }
             }
 
@@ -138,7 +137,7 @@ fun MainScreen(
             }
 
             composable(AppScreen.Error.name) {
-                ErrorScreen({})
+                ErrorScreen({ animeModel.getAnimeList(searchState) })
             }
         }
         if (visibleDialog){
