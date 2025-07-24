@@ -1,5 +1,7 @@
 package ru.stanise.animebrowsing.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -103,59 +105,63 @@ fun MainScreen(
         snackbarHost = { SnackbarHost(snackHostState) }
     ) { innerPadding ->
 
-        NavHost(
-            navController = navController,
-            startDestination = AppScreen.Launcher.name,
-            modifier = Modifier.padding(innerPadding),
-            enterTransition = { enterTransition },
-            exitTransition = { exitTransition },
-            popEnterTransition = { popEnterTransition },
-            popExitTransition = { popExitTransition },
-        ) {
-            composable(AppScreen.Launcher.name) {
-                LauncherScreen {
-                    genreModel.fetchGenres()
-                    animeModel.getAnimeList(searchState)
+        Box (modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            NavHost(
+                navController = navController,
+                startDestination = AppScreen.Launcher.name,
+                enterTransition = { enterTransition },
+                exitTransition = { exitTransition },
+                popEnterTransition = { popEnterTransition },
+                popExitTransition = { popExitTransition },
+            ) {
+                composable(AppScreen.Launcher.name) {
+                    LauncherScreen {
+                        genreModel.fetchGenres()
+                        animeModel.getAnimeList(searchState)
+                    }
+                }
+
+                composable(AppScreen.AnimeList.name) {
+                    AnimeListScreen(animeModel, searchModel){
+                        animeModel.selectAnime(it)
+                    }
+                }
+
+                composable(AppScreen.AnimeDetail.name) {
+                    selectedAnime?.let { anime ->
+                        AnimeDetailScreen(
+                            anime = anime,
+                            onFaveAdded = onAdded,
+                            onFaveRemoved = onRemoved
+                        )
+                    }
+                }
+
+                composable(AppScreen.Favorites.name) {
+                    FavoritesScreen(onGoTo = animeModel::selectAnime, onFaveRemoved = onRemoved)
+                }
+
+                composable(AppScreen.NotFound.name) {
+                    NotFoundScreen { visibleDialog = !visibleDialog }
+                }
+
+                composable(AppScreen.Error.name) {
+                    ErrorScreen({ animeModel.getAnimeList(searchState) })
                 }
             }
-
-            composable(AppScreen.AnimeList.name) {
-                AnimeListScreen(animeModel, searchModel){
-                    animeModel.selectAnime(it)
-                }
+            if (visibleDialog){
+                FilterDialog(
+                    onDismiss = { visibleDialog = !visibleDialog },
+                    genres = genreState,
+                    onApply = {
+                        animeModel.getAnimeList(searchModel.searchByFilters(it))
+                        visibleDialog = false
+                    }
+                )
             }
-
-            composable(AppScreen.AnimeDetail.name) {
-                selectedAnime?.let { anime ->
-                    AnimeDetailScreen(
-                        anime = anime,
-                        onFaveAdded = onAdded,
-                        onFaveRemoved = onRemoved
-                    )
-                }
+            if (animeModel.isFetchingMore && animeModel.animeList.isEmpty()){
+                LoadingOverlay()
             }
-
-            composable(AppScreen.Favorites.name) {
-                FavoritesScreen(onGoTo = animeModel::selectAnime, onFaveRemoved = onRemoved)
-            }
-
-            composable(AppScreen.NotFound.name) {
-                NotFoundScreen { visibleDialog = !visibleDialog }
-            }
-
-            composable(AppScreen.Error.name) {
-                ErrorScreen({ animeModel.getAnimeList(searchState) })
-            }
-        }
-        if (visibleDialog){
-            FilterDialog(
-                onDismiss = { visibleDialog = !visibleDialog },
-                genres = genreState,
-                onApply = {
-                    animeModel.getAnimeList(searchModel.searchByFilters(it))
-                    visibleDialog = false
-                }
-            )
         }
     }
 }
