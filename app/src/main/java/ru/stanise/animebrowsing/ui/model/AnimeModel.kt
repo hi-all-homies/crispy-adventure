@@ -37,7 +37,6 @@ class AnimeModel(private val animeRepo: AnimeRepo, private val nav: Navigator) :
         private set
 
 
-
     fun getAnimeList(searchUiState: SearchUiState) {
         currentPage = 1
         hasMorePages = true
@@ -81,9 +80,6 @@ class AnimeModel(private val animeRepo: AnimeRepo, private val nav: Navigator) :
     ){
         viewModelScope.launch {
             isFetchingMore = true
-            if (currentPage == 1){
-                nav.navigateTo(AppScreen.AnimeList)
-            }
             try {
                 val result = requestBlock()
 

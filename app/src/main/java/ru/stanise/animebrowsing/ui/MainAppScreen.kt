@@ -28,6 +28,10 @@ import ru.stanise.animebrowsing.ui.nav.NavCommand
 import ru.stanise.animebrowsing.ui.nav.Navigator
 import ru.stanise.animebrowsing.ui.nav.ObserveNavigation
 import ru.stanise.animebrowsing.ui.nav.currentScreen
+import ru.stanise.animebrowsing.ui.nav.enterTransition
+import ru.stanise.animebrowsing.ui.nav.exitTransition
+import ru.stanise.animebrowsing.ui.nav.popEnterTransition
+import ru.stanise.animebrowsing.ui.nav.popExitTransition
 import ru.stanise.animebrowsing.ui.nav.safeNavigate
 
 
@@ -49,7 +53,6 @@ fun MainScreen(
 
     LaunchedEffect(Unit) {
         navigator.commands.collectLatest { command ->
-
             when (command) {
                 is NavCommand.To -> {
                     navController.safeNavigate(command.screen.name)
@@ -103,7 +106,11 @@ fun MainScreen(
         NavHost(
             navController = navController,
             startDestination = AppScreen.Launcher.name,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition },
         ) {
             composable(AppScreen.Launcher.name) {
                 LauncherScreen {

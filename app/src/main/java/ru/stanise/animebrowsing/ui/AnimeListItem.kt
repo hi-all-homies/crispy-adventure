@@ -78,7 +78,7 @@ fun AnimeListItem(
                 Text(
                     text = anime.titles.getEnglishTitleOrFallback(),
                     style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
