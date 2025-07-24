@@ -25,7 +25,7 @@ import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
 fun ErrorScreen(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
-    message: String = "Something went wrong"
+    message: String = "Network failure"
 ) {
     Box(
         modifier = modifier

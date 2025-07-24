@@ -198,6 +198,7 @@ fun SingleCharacter(
             }
             else -> {
                 Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                     modifier = modifier.fillMaxWidth()
                 ) {
