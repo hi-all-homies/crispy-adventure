@@ -54,8 +54,7 @@ fun AnimeListItem(
     Card(
         onClick = onClick,
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .fillMaxWidth(),
         shape = MaterialTheme.shapes.medium
     ) {
         Row(

@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import ru.stanise.animebrowsing.ui.model.AnimeModel
 import ru.stanise.animebrowsing.ui.model.GenreModel
 import ru.stanise.animebrowsing.ui.model.SearchModel
+import ru.stanise.animebrowsing.ui.model.WindowSizeModel
 import ru.stanise.animebrowsing.ui.nav.AppScreen
 import ru.stanise.animebrowsing.ui.nav.NavCommand
 import ru.stanise.animebrowsing.ui.nav.Navigator
@@ -40,6 +41,7 @@ import ru.stanise.animebrowsing.ui.nav.safeNavigate
 @Composable
 fun MainScreen(
     navigator: Navigator,
+    windowSizeModel: WindowSizeModel,
     searchModel: SearchModel = viewModel(),
     animeModel: AnimeModel = viewModel(factory = AnimeModel.Factory),
     genreModel: GenreModel = viewModel(factory = GenreModel.Factory)
@@ -122,7 +124,7 @@ fun MainScreen(
                 }
 
                 composable(AppScreen.AnimeList.name) {
-                    AnimeListScreen(animeModel, searchModel){
+                    AnimeListScreen(animeModel, searchModel, windowSizeModel){
                         animeModel.selectAnime(it)
                     }
                 }

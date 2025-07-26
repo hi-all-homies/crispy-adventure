@@ -11,6 +11,10 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import ru.stanise.animebrowsing.config.AnimeApplication
 import ru.stanise.animebrowsing.config.Config
@@ -37,6 +41,16 @@ class AnimeModel(private val animeRepo: AnimeRepo, private val nav: Navigator) :
         private set
 
 
+    private val _scrollTop = MutableSharedFlow<Unit>(replay = 1)
+    val scrollTop: SharedFlow<Unit> = _scrollTop.asSharedFlow()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun resetScroll(){
+        viewModelScope.launch {
+            _scrollTop.resetReplayCache()
+        }
+    }
+
     fun getAnimeList(searchUiState: SearchUiState) {
         currentPage = 1
         hasMorePages = true
@@ -46,6 +60,8 @@ class AnimeModel(private val animeRepo: AnimeRepo, private val nav: Navigator) :
             {
                 animeList.addAll(it)
                 selectedAnime = it.first()
+                nav.navigateTo(AppScreen.AnimeList)
+                _scrollTop.emit(Unit)
             }
         )
     }
@@ -93,7 +109,6 @@ class AnimeModel(private val animeRepo: AnimeRepo, private val nav: Navigator) :
                 else {
                     onSuccess(result.distinctBy { it.id }.filter { it.type != AnimeType.MUSIC } )
                     currentPage++
-                    nav.navigateTo(AppScreen.AnimeList)
                 }
             }
             catch (e: Throwable){
