@@ -16,10 +16,21 @@ data class Genre(
 )
 
 fun List<Anime>.countGenres(): Map<String, Int> {
-    return flatMap { it.genres }
-        .groupBy { it.name }
+    val genreCounts = flatMap { it.genres }
+        .groupingBy { it.name }
+        .eachCount()
         .entries
-        .sortedByDescending { it.value.size }
-        .take(Config.CHART_COLORS.size)
-        .associate { it.key to it.value.size }
+        .sortedByDescending { it.value }
+
+    val maxGenres = Config.CHART_COLORS.size - 1
+    val mainGenres = genreCounts.take(maxGenres)
+    val otherGenres = genreCounts.drop(maxGenres)
+
+    val othersCount = otherGenres.sumOf { it.value }
+
+    val result = mainGenres.associate { it.key to it.value }.toMutableMap()
+    if (othersCount > 0) {
+        result["others"] = othersCount
+    }
+    return result
 }

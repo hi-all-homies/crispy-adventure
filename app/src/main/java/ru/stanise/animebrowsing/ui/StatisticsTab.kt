@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -39,6 +41,7 @@ import kotlin.math.roundToInt
 @Composable
 fun GenresTab(
     faves: List<Anime>,
+    windowWidthSizeClass: WindowWidthSizeClass,
     modifier: Modifier = Modifier,
 ){
     var pieData by remember { mutableStateOf(PieChartData(emptyList(), PlotType.Donut)) }
@@ -53,10 +56,8 @@ fun GenresTab(
         pieData = PieChartData(slices, PlotType.Donut)
     }
 
-    val donutConfig = chartConfig.copy(
-        labelColor = MaterialTheme.colorScheme.primary,
-        backgroundColor = MaterialTheme.colorScheme.background
-    )
+    val labelColor = MaterialTheme.colorScheme.primary
+    val backgroundColor = MaterialTheme.colorScheme.background
 
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -65,23 +66,69 @@ fun GenresTab(
             .fillMaxSize()
     ) {
         if (pieData.slices.isNotEmpty()){
-            item {
-                TextCard(modifier) {
-                    Text(
-                        text = "Genres you like the most (up to 20)",
-                        style = MaterialTheme.typography.titleMedium
+            when(windowWidthSizeClass){
+                WindowWidthSizeClass.Compact -> {
+
+                    val chartConfig = PieChartConfig(
+                        labelVisible = true,
+                        labelFontSize = 42.sp,
+                        strokeWidth = 150f,
+                        activeSliceAlpha = .9f,
+                        isAnimationEnable = true,
+                        animationDuration = 1000,
+                        chartPadding = 20,
+                        labelColor = labelColor,
+                        backgroundColor = backgroundColor
                     )
+
+                    item {
+                        TextCard(modifier) {
+                            Text(
+                                text = "Genres you like the most",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+
+                        DonutPieChart(
+                            modifier = modifier.fillMaxWidth(),
+                            pieData,
+                            chartConfig
+                        ){ slice -> clickedGenre = "${slice.label}, count: ${slice.value.roundToInt()}" }
+
+                        TextCard(modifier) {
+                            SlidingText(clickedGenre)
+                        }
+                    }
                 }
+                else -> {
+                    val chartConfig = PieChartConfig(
+                        labelVisible = true,
+                        labelFontSize = 32.sp,
+                        strokeWidth = 90f,
+                        activeSliceAlpha = .9f,
+                        isAnimationEnable = true,
+                        animationDuration = 1000,
+                        chartPadding = 20,
+                        labelColor = labelColor,
+                        backgroundColor = backgroundColor
+                    )
+                    item {
+                        Row(
+                            modifier = modifier.fillMaxWidth().padding(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            DonutPieChart(
+                                modifier = modifier.height(250.dp),
+                                pieData,
+                                chartConfig
+                            ){ slice -> clickedGenre = "${slice.label}, count: ${slice.value.roundToInt()}" }
 
-                DonutPieChart(
-                    modifier = modifier
-                        .fillMaxWidth(),
-                    pieData,
-                    donutConfig
-                ){ slice -> clickedGenre = "${slice.label}, count: ${slice.value.roundToInt()}" }
-
-                TextCard(modifier) {
-                    SlidingText(clickedGenre)
+                            TextCard(modifier) {
+                                SlidingText(clickedGenre)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -130,19 +177,9 @@ fun SlidingText(text: String) {
     }
 }
 
-private val chartConfig = PieChartConfig(
-    labelVisible = true,
-    labelFontSize = 42.sp,
-    strokeWidth = 150f,
-    activeSliceAlpha = .9f,
-    isAnimationEnable = true,
-    animationDuration = 1000,
-    chartPadding = 20
-)
-
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewPieChart(){
-    GenresTab(listOf())
+    GenresTab(listOf(), WindowWidthSizeClass.Compact)
 }
