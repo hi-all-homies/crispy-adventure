@@ -52,6 +52,7 @@ room {
 }
 
 dependencies {
+    implementation(libs.androidx.material3.window.size.class1)
     implementation(libs.ycharts)
 
     implementation(libs.room.runtime)
