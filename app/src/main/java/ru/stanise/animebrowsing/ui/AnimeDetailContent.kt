@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.ExpandLess
@@ -24,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -62,6 +64,7 @@ import ru.stanise.animebrowsing.repository.CharacterRepo
 import ru.stanise.animebrowsing.repository.FavesRepo
 import ru.stanise.animebrowsing.ui.model.CharacterModel
 import ru.stanise.animebrowsing.ui.model.FavesModel
+import ru.stanise.animebrowsing.ui.model.WindowSizeModel
 import ru.stanise.animebrowsing.ui.theme.AnimeBrowsingTheme
 import java.time.OffsetDateTime
 
@@ -70,6 +73,7 @@ fun AnimeDetailScreen(
     anime: Anime,
     onFaveAdded: (String) -> Unit,
     onFaveRemoved: (String) -> Unit,
+    windowSizeModel: WindowSizeModel,
     modifier: Modifier = Modifier,
     favesModel: FavesModel = viewModel(factory = FavesModel.Factory),
     characterModel: CharacterModel = viewModel(factory = CharacterModel.Factory)
@@ -77,6 +81,7 @@ fun AnimeDetailScreen(
     val faves by favesModel.favesState.collectAsState()
     val faveOnDelete by favesModel.faveUiState.collectAsState()
     val characters by characterModel.characters.collectAsState()
+    val windowWidthState by windowSizeModel.windowWidthState.collectAsState()
 
     LaunchedEffect(Unit) {
         characterModel.getAnimeCharacters(anime.id)
@@ -87,72 +92,231 @@ fun AnimeDetailScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        item{
-            Column(
+        when(windowWidthState){
+            WindowWidthSizeClass.Compact -> {
+                compactLayout(
+                    anime = anime,
+                    faves = faves,
+                    updateFaveOnDelete = favesModel::updateFaveOnDelete,
+                    toggleFaves = favesModel::toggleFaves,
+                    onFaveAdded = onFaveAdded,
+                    modifier = modifier
+                )
+            }
+            else -> {
+                extendedLayout(
+                    anime = anime,
+                    faves = faves,
+                    updateFaveOnDelete = favesModel::updateFaveOnDelete,
+                    toggleFaves = favesModel::toggleFaves,
+                    onFaveAdded = onFaveAdded,
+                    modifier = modifier
+                )
+            }
+        }
+
+        item {
+            GenresRow(anime)
+            Spacer(modifier = modifier.height(8.dp))
+        }
+
+        item {
+            anime.synopsis?.let { ExpandableText(it) }
+            Spacer(modifier = modifier.height(12.dp))
+            anime.background?.let { if (it.isNotBlank()) ExpandableText("Background: \n$it") }
+        }
+
+        item {
+            Spacer(modifier = modifier.height(12.dp))
+            CharacterList(characters, characterModel, windowWidthState)
+        }
+    }
+
+    if (faveOnDelete.isShown){
+        DeleteDialog(
+            onConfirm = {
+                faveOnDelete.faveToDelete?.let {
+                    favesModel.toggleFaves(it)
+                    onFaveRemoved(anime.titles.getEnglishTitleOrFallback())
+                }
+            },
+            onDismiss = favesModel::updateFaveOnDelete
+        )
+    }
+}
+
+
+fun LazyListScope.compactLayout(
+    anime: Anime,
+    faves: List<Anime>,
+    updateFaveOnDelete: (Anime) -> Unit,
+    toggleFaves: (Anime) -> Unit,
+    onFaveAdded: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+
+    item{
+        Column(
+            modifier = modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = anime.titles.getEnglishTitleOrFallback(),
+                style = MaterialTheme.typography.headlineSmall,
+                maxLines = 4,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            anime.titles.getJapaneseTitleOrFallback().let {
+                if (it.isNotBlank()){
+                    Spacer(modifier = modifier.height(8.dp))
+
+                    Text(
+                        text = anime.titles.getJapaneseTitleOrFallback(),
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+    }
+
+    item {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, bottom = 16.dp)
+        ) {
+            AnimePoster(
+                anime.images.webp.imageUrl,
+                modifier = modifier
+                    .height(385.dp)
+                    .aspectRatio(2f / 3f)
+                    .clip(MaterialTheme.shapes.medium)
+            )
+        }
+    }
+
+    item {
+        Column(
+            modifier = modifier
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = modifier.fillMaxWidth()
             ) {
+                val isBookmarked = faves.any { it.id == anime.id }
+
+                anime.status?.let { StatusChip(it) }
+
+                IconButton(onClick = {
+                    if (isBookmarked) updateFaveOnDelete(anime)
+                    else {
+                        toggleFaves(anime)
+                        onFaveAdded(anime.titles.getEnglishTitleOrFallback())
+                    }
+                }) {
+                    Icon(
+                        imageVector = if (isBookmarked) Icons.Outlined.BookmarkRemove else Icons.Outlined.BookmarkAdd,
+                        contentDescription = if (isBookmarked) "delete fave" else "add to faves",
+                        tint = if (isBookmarked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            AiredRow(anime, modifier)
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(28.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = modifier.fillMaxWidth()
+            ) {
+                anime.score?.let {
+                    LabeledIconRow(it.toString(), Icons.Default.Star, MaterialTheme.typography.bodyLarge)
+                }
+
+                anime.type?.let {
+                    Text(
+                        text = it.rawValue.uppercase(),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+
+            Spacer(modifier = modifier.height(8.dp))
+
+            anime.let {
+                val label = it.getSeasonYear()
+                if (label.isNotBlank()) {
+                    LabeledIconRow(label, Icons.Default.DateRange, MaterialTheme.typography.bodyLarge)
+                }
+            }
+
+            Spacer(modifier = modifier.height(8.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(28.dp)
+            ) {
+                anime.episodes?.let {
+                    Text(
+                        text = "Episodes: $it",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                }
+
+                anime.duration?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+fun LazyListScope.extendedLayout(
+    anime: Anime,
+    faves: List<Anime>,
+    updateFaveOnDelete: (Anime) -> Unit,
+    toggleFaves: (Anime) -> Unit,
+    onFaveAdded: (String) -> Unit,
+    modifier: Modifier = Modifier
+){
+    item {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            modifier = modifier.fillMaxWidth()
+        ) {
+            AnimePoster(
+                anime.images.webp.imageUrl,
+                modifier = modifier
+                    .height(265.dp)
+                    .aspectRatio(2f / 3f)
+                    .clip(MaterialTheme.shapes.medium)
+            )
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = modifier.fillMaxWidth()
+            ){
                 Text(
                     text = anime.titles.getEnglishTitleOrFallback(),
                     style = MaterialTheme.typography.headlineSmall,
-                    maxLines = 4,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
 
                 anime.titles.getJapaneseTitleOrFallback().let {
                     if (it.isNotBlank()){
-                        Spacer(modifier = modifier.height(8.dp))
-
                         Text(
                             text = anime.titles.getJapaneseTitleOrFallback(),
                             style = MaterialTheme.typography.titleMedium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-            }
-        }
-        item {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp, bottom = 16.dp)
-            ) {
-                AnimePoster(
-                    anime.images.webp.imageUrl,
-                    modifier = modifier
-                        .height(385.dp)
-                        .aspectRatio(2f / 3f)
-                        .clip(MaterialTheme.shapes.medium)
-                )
-            }
-        }
-
-        item {
-            Column(
-                modifier = modifier
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = modifier.fillMaxWidth()
-                ) {
-                    val isBookmarked = faves.any { it.id == anime.id }
-
-                    anime.status?.let { StatusChip(it) }
-
-                    IconButton(onClick = {
-                        if (isBookmarked) favesModel.updateFaveOnDelete(anime)
-                        else {
-                            favesModel.toggleFaves(anime)
-                            onFaveAdded(anime.titles.getEnglishTitleOrFallback())
-                        }
-                    }) {
-                        Icon(
-                            imageVector = if (isBookmarked) Icons.Outlined.BookmarkRemove else Icons.Outlined.BookmarkAdd,
-                            contentDescription = if (isBookmarked) "delete fave" else "add to faves",
-                            tint = if (isBookmarked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -176,16 +340,12 @@ fun AnimeDetailScreen(
                     }
                 }
 
-                Spacer(modifier = modifier.height(8.dp))
-
                 anime.let {
                     val label = it.getSeasonYear()
                     if (label.isNotBlank()) {
                         LabeledIconRow(label, Icons.Default.DateRange, MaterialTheme.typography.bodyLarge)
                     }
                 }
-
-                Spacer(modifier = modifier.height(8.dp))
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(28.dp)
@@ -204,37 +364,33 @@ fun AnimeDetailScreen(
                         )
                     }
                 }
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = modifier.fillMaxWidth()
+                ) {
+                    val isBookmarked = faves.any { it.id == anime.id }
+
+                    anime.status?.let { StatusChip(it) }
+
+                    IconButton(onClick = {
+                        if (isBookmarked) updateFaveOnDelete(anime)
+                        else {
+                            toggleFaves(anime)
+                            onFaveAdded(anime.titles.getEnglishTitleOrFallback())
+                        }
+                    }) {
+                        Icon(
+                            imageVector = if (isBookmarked) Icons.Outlined.BookmarkRemove else Icons.Outlined.BookmarkAdd,
+                            contentDescription = if (isBookmarked) "delete fave" else "add to faves",
+                            tint = if (isBookmarked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
         }
-
-        item {
-            GenresRow(anime)
-            Spacer(modifier = modifier.height(8.dp))
-        }
-
-        item {
-            anime.synopsis?.let { ExpandableText(it) }
-            Spacer(modifier = modifier.height(12.dp))
-            anime.background?.let { if (it.isNotBlank()) ExpandableText("Background: \n$it") }
-        }
-
-        item {
-            Spacer(modifier = modifier.height(12.dp))
-            CharacterList(characters, characterModel)
-        }
     }
 
-    if (faveOnDelete.isShown){
-        DeleteDialog(
-            onConfirm = {
-                faveOnDelete.faveToDelete?.let {
-                    favesModel.toggleFaves(it)
-                    onFaveRemoved(anime.titles.getEnglishTitleOrFallback())
-                }
-            },
-            onDismiss = favesModel::updateFaveOnDelete
-        )
-    }
 }
 
 
@@ -322,7 +478,7 @@ fun AiredRow(anime: Anime, modifier: Modifier = Modifier) {
 
 
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, widthDp = 710, heightDp = 350)
 @Composable
 fun AnimeDetailPreview() {
 
@@ -382,7 +538,9 @@ fun AnimeDetailPreview() {
         CharacterModel(charRepo)
     }
 
+    val windowSizeModel = remember { WindowSizeModel() }
+    windowSizeModel.updateWidthState(WindowWidthSizeClass.Medium)
     AnimeBrowsingTheme {
-        AnimeDetailScreen(stubAnime, {}, {}, favesModel = favesModel, characterModel = characterModel)
+        AnimeDetailScreen(stubAnime, {}, {}, windowSizeModel = windowSizeModel, favesModel = favesModel, characterModel = characterModel)
     }
 }

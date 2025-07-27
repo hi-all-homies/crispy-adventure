@@ -30,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -53,10 +54,11 @@ import ru.stanise.animebrowsing.ui.model.SingleCharacterUiState
 fun CharacterList(
     characters: List<CharacterData>,
     characterModel: CharacterModel,
+    windowWidthState: WindowWidthSizeClass,
     modifier: Modifier = Modifier
 ){
     if (characters.isNotEmpty()) {
-        val sheetState = rememberModalBottomSheetState()
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         val scope = rememberCoroutineScope()
         var showBottomSheet by remember { mutableStateOf(false) }
 
@@ -95,6 +97,7 @@ fun CharacterList(
                             }
                         }
                     },
+                    windowWidthState = windowWidthState,
                     modifier = modifier
                 )
             }
@@ -138,6 +141,7 @@ fun CharacterItem(
 fun SingleCharacter(
     characterModel: CharacterModel,
     onClose: () -> Unit,
+    windowWidthState: WindowWidthSizeClass,
     modifier: Modifier = Modifier
 ){
     val singleCharState by characterModel.singleCharState.collectAsState()
@@ -165,35 +169,15 @@ fun SingleCharacter(
             }
             is SingleCharacterUiState.Success -> {
                 val single = (singleCharState as SingleCharacterUiState.Success).single
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = modifier.fillMaxWidth()
-                ) {
+
+                Row(horizontalArrangement = Arrangement.Center, modifier = modifier.fillMaxWidth()) {
                     Text(text = single.name, style = MaterialTheme.typography.headlineSmall)
                 }
-
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = modifier.fillMaxWidth()
-                ) {
-                    AnimePoster(
-                        single.images.webp.imageUrl,
-                        modifier = modifier
-                            .height(250.dp)
-                            .aspectRatio(2f / 3f)
-                            .clip(MaterialTheme.shapes.medium)
-                    )
-                }
-
-                single.about?.let {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.verticalScroll(rememberScrollState())
-                    )
+                when(windowWidthState){
+                    WindowWidthSizeClass.Compact -> { CharacterCompact(single, modifier) }
+                    else -> { CharacterExtended(single, modifier) }
                 }
             }
             else -> {
@@ -213,6 +197,56 @@ fun SingleCharacter(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun CharacterCompact(single: Character, modifier: Modifier = Modifier) {
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        AnimePoster(
+            single.images.webp.imageUrl,
+            modifier = modifier
+                .height(250.dp)
+                .aspectRatio(2f / 3f)
+                .clip(MaterialTheme.shapes.medium)
+        )
+    }
+
+    single.about?.let {
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = it,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.verticalScroll(rememberScrollState())
+        )
+    }
+}
+
+@Composable
+fun CharacterExtended(single: Character, modifier: Modifier = Modifier) {
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        AnimePoster(
+            single.images.webp.imageUrl,
+            modifier = modifier
+                .height(250.dp)
+                .aspectRatio(2f / 3f)
+                .clip(MaterialTheme.shapes.medium)
+        )
+
+        single.about?.let {
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            )
         }
     }
 }

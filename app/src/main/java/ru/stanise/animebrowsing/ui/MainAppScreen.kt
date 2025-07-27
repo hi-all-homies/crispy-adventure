@@ -134,7 +134,8 @@ fun MainScreen(
                         AnimeDetailScreen(
                             anime = anime,
                             onFaveAdded = onAdded,
-                            onFaveRemoved = onRemoved
+                            onFaveRemoved = onRemoved,
+                            windowSizeModel = windowSizeModel
                         )
                     }
                 }
